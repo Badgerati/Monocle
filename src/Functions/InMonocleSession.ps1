@@ -14,7 +14,6 @@ function InMonocleSession
 
         [switch] $Visible,
         [switch] $NotSilent,
-        [switch] $KeepOpen,
         [switch] $ScreenshotOnFail
     )
 
@@ -60,7 +59,7 @@ function InMonocleSession
     }
     finally
     {
-        if (!$KeepOpen)
+        if ($MonocleIESession -ne $null)
         {
             $MonocleIESession.Quit()
         }

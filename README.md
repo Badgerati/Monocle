@@ -13,5 +13,5 @@ InMonocleSession 'Load YouTube' {
     ExpectUrl 'https://www.youtube.com/results?search_query=' -StartsWith
     ClickElement 'Dragon Ball Super Soundtrack - Beerus Madness (Extended)' -TagName 'a' -AttributeName 'title'
     ExpectUrl 'https://www.youtube.com/watch?v=SI6Yyr-iI6M'
-} -Visible -ScreenshotOnFail -KeepOpen
+} -Visible -ScreenshotOnFail
 ```
