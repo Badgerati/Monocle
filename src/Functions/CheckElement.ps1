@@ -1,17 +1,11 @@
-function GetElementValue
+function CheckElement
 {
     param (
         [Parameter(Mandatory=$true)]
         [ValidateNotNull()]
         [string] $ElementName,
 
-        [Parameter(Mandatory=$false)]
-        [string] $TagName,
-
-        [Parameter(Mandatory=$false)]
-        [string] $AttributeName,
-
-        [switch] $UseInnerHtml
+        [switch] $Uncheck
     )
 
     # Attempt to retrieve this sessions Monocle
@@ -20,6 +14,17 @@ function GetElementValue
         throw 'No Monocle session for IE found.'
     }
 
+    # Attempt to retrieve an appropriate control
     $control = GetControl $MonocleIESession $ElementName -tagName $TagName -attributeName $AttributeName
-    return GetControlValue $control -useInnerHtml:$UseInnerHtml
+    
+    try
+    {
+        # Attempt to toggle the check value
+        $control.Checked = !$Uncheck
+    }
+    catch [exception]
+    {
+        Write-Error "Failed to toggle check of '$ElementName' control"
+        throw
+    }
 }

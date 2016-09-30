@@ -14,28 +14,38 @@ function InMonocleSession
 
         [switch] $Visible,
         [switch] $NotSilent,
-        [switch] $ScreenshotOnFail
+        [switch] $ScreenshotOnFail,
+        [switch] $NotQuiet
     )
 
-    $MonocleIESession = New-Object -ComObject InternetExplorer.Application
-    if (!$? -or $MonocleIESession -eq $null)
+    $MonocleIESession = New-Object -TypeName PSObject |
+        Add-Member -MemberType NoteProperty -Name Browser -Value $null -PassThru |
+        Add-Member -MemberType NoteProperty -Name Quiet -Value $false -PassThru
+    
+    $MonocleIESession.Browser = New-Object -ComObject InternetExplorer.Application
+    $MonocleIESession.Quiet = !$NotQuiet
+
+    if (!$? -or $MonocleIESession -eq $null -or $MonocleIESession.Browser -eq $null)
     {
         throw 'Failed to create Monocle session for IE.'
     }
 
-    $MonocleIESession.Visible = $Visible
-    $MonocleIESession.Silent = !$NotSilent
+    $MonocleIESession.Browser.Visible = $Visible
+    $MonocleIESession.Browser.Silent = !$NotSilent
 
     try
     {
         & $ScriptBlock
+        Write-MonocleHost "Monocle session '$Name' Success" $MonocleIESession
     }
     catch [exception]
     {
+        Write-MonocleHost "Monocle session '$Name' Failed" $MonocleIESession
+
         if ($ScreenshotOnFail)
         {
-            $MonocleIESession.Visible = $true
-            $MonocleIESession.TheaterMode = $true
+            $MonocleIESession.Browser.Visible = $true
+            $MonocleIESession.Browser.TheaterMode = $true
             SleepWhileBusy $MonocleIESession
 
             if ([string]::IsNullOrWhiteSpace($ScreenshotPath))
@@ -47,21 +57,21 @@ function InMonocleSession
 
             Add-Type -AssemblyName System.Drawing
 
-            $bitmap = New-Object System.Drawing.Bitmap $MonocleIESession.Width, $MonocleIESession.Height
+            $bitmap = New-Object System.Drawing.Bitmap $MonocleIESession.Browser.Width, $MonocleIESession.Browser.Height
             $graphic = [System.Drawing.Graphics]::FromImage($bitmap)
-            $graphic.CopyFromScreen($MonocleIESession.Left, $MonocleIESession.Top, 0, 0, $bitmap.Size)
+            $graphic.CopyFromScreen($MonocleIESession.Browser.Left, $MonocleIESession.Browser.Top, 0, 0, $bitmap.Size)
             $bitmap.Save($filepath)
 
-            Write-Host "Screenshot saved to: $filepath"
+            Write-MonocleHost "Screenshot saved to: $filepath" $MonocleIESession
         }
 
         throw $_.Exception
     }
     finally
     {
-        if ($MonocleIESession -ne $null)
+        if ($MonocleIESession.Browser -ne $null)
         {
-            $MonocleIESession.Quit()
+            $MonocleIESession.Browser.Quit()
         }
     }
 }

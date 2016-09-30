@@ -15,7 +15,7 @@ function ModifyUrl
         throw 'No Monocle session for IE found.'
     }
 
-    $Url = $MonocleIESession.LocationURL -ireplace $FindValue, $ReplaceValue
-    $MonocleIESession.Navigate($Url)
+    $Url = $MonocleIESession.Browser.LocationURL -ireplace $FindValue, $ReplaceValue
+    $MonocleIESession.Browser.Navigate($Url)
     SleepWhileBusy $MonocleIESession
 }

@@ -1,16 +1,17 @@
-function NavigateTo
+function Sleep
 {
     param (
         [Parameter(Mandatory=$true)]
         [ValidateNotNull()]
-        [string] $Url
+        [int] $Seconds
     )
 
+    # Attempt to retrieve this sessions Monocle
     if ((Get-Variable -Name MonocleIESession -ValueOnly -ErrorAction Stop) -eq $null)
     {
         throw 'No Monocle session for IE found.'
     }
     
-    $MonocleIESession.Browser.Navigate($Url)
-    SleepWhileBusy $MonocleIESession
+    Write-MonocleHost "Sleeping for $Seconds second(s)" $MonocleIESession
+    Start-Sleep -Seconds $Seconds
 }

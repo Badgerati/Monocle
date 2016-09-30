@@ -18,13 +18,15 @@ function ExpectUrl
 
     $currentCount = 0
 
+    Write-MonocleHost "Waiting for URL: '$ExpectedUrl'" $MonocleIESession
+
     if ($StartsWith)
     {
-        while (!$MonocleIESession.LocationURL.StartsWith($ExpectedUrl))
+        while (!$MonocleIESession.Browser.LocationURL.StartsWith($ExpectedUrl))
         {
             if ($currentCount -ge $AttemptCount)
             {
-                throw ("Expected: StartsWith $ExpectedUrl`nBut got: {0}" -f $MonocleIESession.LocationURL)
+                throw ("Expected: StartsWith $ExpectedUrl`nBut got: {0}" -f $MonocleIESession.Browser.LocationURL)
             }
 
             $currentCount++
@@ -33,17 +35,19 @@ function ExpectUrl
     }
     else
     {
-        while ($MonocleIESession.LocationURL -ine $ExpectedUrl)
+        while ($MonocleIESession.Browser.LocationURL -ine $ExpectedUrl)
         {
             if ($currentCount -ge $AttemptCount)
             {
-                throw ("Expected: $ExpectedUrl`nBut got: {0}" -f $MonocleIESession.LocationURL)
+                throw ("Expected: $ExpectedUrl`nBut got: {0}" -f $MonocleIESession.Browser.LocationURL)
             }
 
             $currentCount++
             Start-Sleep -Seconds 1
         }
-    }    
+    }
+
+    Write-MonocleHost 'Expected URL loaded' $MonocleIESession
     
     SleepWhileBusy $MonocleIESession
 }
