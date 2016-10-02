@@ -25,22 +25,14 @@ function SetElementValue
     # Attempt to retrieve an appropriate control
     $control = GetControl $MonocleIESession $ElementName -tagName $TagName -attributeName $AttributeName
     
-    try
+    # Set the value of the control, if it's a select control, set the appropriate
+    # option with value to be selected
+    if ($control.Length -gt 1 -and $control[0].tagName -ieq 'option')
     {
-        # Set the value of the control, if it's a select control, set the appropriate
-        # option with value to be selected
-        if ($control.Length -gt 1 -and $control[0].tagName -ieq 'option')
-        {
-            ($control | Where-Object { $_.innerHTML -ieq $Value }).Selected = $true
-        }
-        else
-        {
-            $control.value = $Value
-        }
+        ($control | Where-Object { $_.innerHTML -ieq $Value }).Selected = $true
     }
-    catch [exception]
+    else
     {
-        Write-Error "Failed to set value of '$ElementName' control"
-        throw
+        $control.value = $Value
     }
 }

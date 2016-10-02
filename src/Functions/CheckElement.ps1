@@ -17,14 +17,6 @@ function CheckElement
     # Attempt to retrieve an appropriate control
     $control = GetControl $MonocleIESession $ElementName -tagName $TagName -attributeName $AttributeName
     
-    try
-    {
-        # Attempt to toggle the check value
-        $control.Checked = !$Uncheck
-    }
-    catch [exception]
-    {
-        Write-Error "Failed to toggle check of '$ElementName' control"
-        throw
-    }
+    # Attempt to toggle the check value
+    $control.Checked = !$Uncheck
 }

@@ -63,6 +63,14 @@ function GetControl($session, $name, $tagName = $null, $attributeName = $null)
 
 function GetControlValue($control, [switch]$useInnerHtml)
 {
+    # Get the value of the control, if it's a select control, get the appropriate
+    # option where option is selected
+    if ($control.Length -gt 1 -and $control[0].tagName -ieq 'option')
+    {
+        return ($control | Where-Object { $_.Selected -eq $true }).innerHTML
+    }
+
+    # If not a select control, then return either the innerHTML or value
     if ($useInnerHtml)
     {
         return $control.innerHTML
@@ -78,6 +86,57 @@ function Write-MonocleHost($message, $session)
     {
         Write-Host $message
     }
+}
+
+function Write-MonocleError($message, $session)
+{
+    Write-Host $message -ForegroundColor Red
+}
+
+
+function Test-Url($url)
+{
+    $code = 200
+
+    try
+    {
+        $result = Invoke-WebRequest -Uri $url -TimeoutSec 30
+
+        # If the header contains a closed connection, then it will be a redirect
+        # from a 404 page. Such as from BT.
+        if ($result.Headers['Connection'] -ieq 'closed')
+        {
+            $code = 404
+        }
+        else
+        {
+            $code = [int]$result.StatusCode
+        }
+    }
+    catch [System.Net.WebException]
+    {
+        $ex = $_.Exception
+        
+        # If the URL just doesn't exist then there is no status code.
+        # If the message is as below, then it's technically a 404
+        if ($ex.Message -imatch 'The remote name could not be resolved')
+        {
+            $code = 404
+        }
+        else
+        {
+            $code = $ex.Response.StatusCode.Value__
+        }
+    }
+
+    # Anything that is 1xx-2xx is normally successful, anything that's
+    # 300+ is normally always a failure to load
+    if ($code -ge 300)
+    {
+        throw "Failed to load URL: '$url'"
+    }
+
+    return $code
 }
 
 
