@@ -10,10 +10,8 @@ function ModifyUrl
         [string] $ReplaceValue
     )
 
-    if ((Get-Variable -Name MonocleIESession -ValueOnly -ErrorAction Stop) -eq $null)
-    {
-        throw 'No Monocle session for IE found.'
-    }
+    # Attempt to retrieve this sessions Monocle
+    Test-MonocleSession
 
     $Url = $MonocleIESession.Browser.LocationURL -ireplace $FindValue, $ReplaceValue
     $MonocleIESession.Browser.Navigate($Url)

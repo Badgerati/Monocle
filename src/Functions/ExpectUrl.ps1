@@ -3,7 +3,7 @@ function ExpectUrl
     param (
         [Parameter(Mandatory=$true)]
         [ValidateNotNull()]
-        [string] $ExpectedUrl,
+        [string] $Url,
 
         [Parameter(Mandatory=$false)]
         [int] $AttemptCount = 10,
@@ -12,22 +12,19 @@ function ExpectUrl
     )
 
     # Attempt to retrieve this sessions Monocle
-    if ((Get-Variable -Name MonocleIESession -ValueOnly -ErrorAction Stop) -eq $null)
-    {
-        throw 'No Monocle session for IE found.'
-    }
+    Test-MonocleSession
 
     $count = 0
 
-    Write-MonocleHost "Waiting for URL: $ExpectedUrl" $MonocleIESession
+    Write-MonocleHost "Waiting for URL: $Url" $MonocleIESession
 
     if ($StartsWith)
     {
-        while (!$MonocleIESession.Browser.LocationURL.StartsWith($ExpectedUrl))
+        while (!$MonocleIESession.Browser.LocationURL.StartsWith($Url))
         {
             if ($count -ge $AttemptCount)
             {
-                throw ("Expected: StartsWith $ExpectedUrl`nBut got: {0}" -f $MonocleIESession.Browser.LocationURL)
+                throw ("Expected URL: StartsWith $Url`nBut got: {0}" -f $MonocleIESession.Browser.LocationURL)
             }
 
             $count++
@@ -36,11 +33,11 @@ function ExpectUrl
     }
     else
     {
-        while ($MonocleIESession.Browser.LocationURL -ine $ExpectedUrl)
+        while ($MonocleIESession.Browser.LocationURL -ine $Url)
         {
             if ($count -ge $AttemptCount)
             {
-                throw ("Expected: $ExpectedUrl`nBut got: {0}" -f $MonocleIESession.Browser.LocationURL)
+                throw ("Expected URL: $Url`nBut got: {0}" -f $MonocleIESession.Browser.LocationURL)
             }
 
             $count++

@@ -19,10 +19,7 @@ function Assert-ElementValue
     )
 
     # Attempt to retrieve this sessions Monocle
-    if ((Get-Variable -Name MonocleIESession -ValueOnly -ErrorAction Stop) -eq $null)
-    {
-        throw 'No Monocle session for IE found.'
-    }
+    Test-MonocleSession
     
     $control = GetControl $MonocleIESession $ElementName -tagName $TagName -attributeName $AttributeName -findByValue:$FindByValue
     $value = GetControlValue $control

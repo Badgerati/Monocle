@@ -207,4 +207,13 @@ function Test-Url($url)
 }
 
 
+function Test-MonocleSession()
+{
+    if ((Get-Variable -Name MonocleIESession -ValueOnly -ErrorAction Stop) -eq $null)
+    {
+        throw 'No Monocle session for IE found.'
+    }
+}
+
+
 #Export-ModuleMember -Function InMonocleSession, NavigateTo
