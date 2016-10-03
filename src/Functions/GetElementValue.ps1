@@ -11,7 +11,8 @@ function GetElementValue
         [Parameter(Mandatory=$false)]
         [string] $AttributeName,
 
-        [switch] $UseInnerHtml
+        [switch] $UseInnerHtml,
+        [switch] $FindByValue
     )
 
     # Attempt to retrieve this sessions Monocle
@@ -20,6 +21,6 @@ function GetElementValue
         throw 'No Monocle session for IE found.'
     }
 
-    $control = GetControl $MonocleIESession $ElementName -tagName $TagName -attributeName $AttributeName
+    $control = GetControl $MonocleIESession $ElementName -tagName $TagName -attributeName $AttributeName -findByValue:$FindByValue
     return GetControlValue $control -useInnerHtml:$UseInnerHtml
 }

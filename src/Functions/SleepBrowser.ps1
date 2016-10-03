@@ -1,4 +1,4 @@
-function Sleep
+function SleepBrowser
 {
     param (
         [Parameter(Mandatory=$true)]

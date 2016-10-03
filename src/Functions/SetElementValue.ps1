@@ -13,7 +13,9 @@ function SetElementValue
         [string] $TagName = $null,
 
         [Parameter(Mandatory=$false)]
-        [string] $AttributeName = $null
+        [string] $AttributeName = $null,
+
+        [switch] $FindByValue
     )
 
     # Attempt to retrieve this sessions Monocle
@@ -23,7 +25,7 @@ function SetElementValue
     }
 
     # Attempt to retrieve an appropriate control
-    $control = GetControl $MonocleIESession $ElementName -tagName $TagName -attributeName $AttributeName
+    $control = GetControl $MonocleIESession $ElementName -tagName $TagName -attributeName $AttributeName -findByValue:$FindByValue
     
     # Set the value of the control, if it's a select control, set the appropriate
     # option with value to be selected

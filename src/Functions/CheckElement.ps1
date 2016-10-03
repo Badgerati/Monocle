@@ -5,7 +5,14 @@ function CheckElement
         [ValidateNotNull()]
         [string] $ElementName,
 
-        [switch] $Uncheck
+        [Parameter(Mandatory=$false)]
+        [string] $TagName,
+
+        [Parameter(Mandatory=$false)]
+        [string] $AttributeName,
+
+        [switch] $Uncheck,
+        [switch] $FindByValue
     )
 
     # Attempt to retrieve this sessions Monocle
@@ -15,7 +22,7 @@ function CheckElement
     }
 
     # Attempt to retrieve an appropriate control
-    $control = GetControl $MonocleIESession $ElementName -tagName $TagName -attributeName $AttributeName
+    $control = GetControl $MonocleIESession $ElementName -tagName $TagName -attributeName $AttributeName -findByValue:$FindByValue
     
     # Attempt to toggle the check value
     $control.Checked = !$Uncheck

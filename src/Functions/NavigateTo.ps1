@@ -16,7 +16,7 @@ function NavigateTo
     $code = Test-Url $Url
 
     # Browse to the URL and wait till it loads
-    Write-MonocleHost "Navigating to: $url (Status: $code)"
+    Write-MonocleHost "Navigating to: $url (Status: $code)" $MonocleIESession
     $MonocleIESession.Browser.Navigate($Url)
     SleepWhileBusy $MonocleIESession
 }

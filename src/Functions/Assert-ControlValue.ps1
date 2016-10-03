@@ -15,7 +15,7 @@ function Assert-ControlValue
         [Parameter(Mandatory=$false)]
         [string] $AttributeName,
 
-        [switch] $UseInnerHtml
+        [switch] $FindByValue
     )
 
     # Attempt to retrieve this sessions Monocle
@@ -24,11 +24,16 @@ function Assert-ControlValue
         throw 'No Monocle session for IE found.'
     }
     
-    $control = GetControl $MonocleIESession $ElementName -tagName $TagName -attributeName $AttributeName
-    $value = GetControlValue $control -useInnerHtml:$UseInnerHtml
+    $control = GetControl $MonocleIESession $ElementName -tagName $TagName -attributeName $AttributeName -findByValue:$FindByValue
+    $value = GetControlValue $control
 
     if ($value -ine $ExpectedValue)
     {
-        throw ("Control's value is not valid.`nExpected: {0}`nBut got: {1}" -f $ExpectedValue, $value)
+        $innerHtml = GetControlValue $control -useInnerHtml
+
+        if ($innerHtml -ine $ExpectedValue)
+        {
+            throw ("Control's value is not valid.`nExpected: {0}`nBut got Value: {1}`nand InnerHTML: {2}" -f $ExpectedValue, $value, $innerHtml)
+        }
     }
 }

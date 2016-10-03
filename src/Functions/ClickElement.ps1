@@ -9,7 +9,9 @@ function ClickElement
         [string] $TagName,
 
         [Parameter(Mandatory=$false)]
-        [string] $AttributeName
+        [string] $AttributeName,
+
+        [switch] $FindByValue
     )
 
     if ((Get-Variable -Name MonocleIESession -ValueOnly -ErrorAction Stop) -eq $null)
@@ -17,7 +19,7 @@ function ClickElement
         throw 'No Monocle session for IE found.'
     }
 
-    $control = GetControl $MonocleIESession $ElementName -tagName $TagName -attributeName $AttributeName
+    $control = GetControl $MonocleIESession $ElementName -tagName $TagName -attributeName $AttributeName -findByValue:$FindByValue
     $control.click()
 
     SleepWhileBusy $MonocleIESession

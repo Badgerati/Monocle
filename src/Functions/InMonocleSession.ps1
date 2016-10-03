@@ -15,7 +15,8 @@ function InMonocleSession
         [switch] $Visible,
         [switch] $NotSilent,
         [switch] $ScreenshotOnFail,
-        [switch] $NotQuiet
+        [switch] $NotQuiet,
+        [switch] $KeepOpen
     )
 
     $MonocleIESession = New-Object -TypeName PSObject |
@@ -32,15 +33,17 @@ function InMonocleSession
 
     $MonocleIESession.Browser.Visible = $Visible
     $MonocleIESession.Browser.Silent = !$NotSilent
+    $MonocleIESession.Browser.TheaterMode = $false
 
     try
     {
+        Write-MonocleHost "Monocle session: $Name" $MonocleIESession -noTab
         & $ScriptBlock
-        Write-MonocleHost "Monocle session '$Name' Success" $MonocleIESession
+        Write-MonocleHost "Monocle session: $Name, Success`n`n" $MonocleIESession -noTab
     }
     catch [exception]
     {
-        Write-MonocleHost "Monocle session '$Name' Failed" $MonocleIESession
+        Write-MonocleHost "Monocle session: $Name, Failed`n`n" $MonocleIESession -noTab
 
         if ($ScreenshotOnFail)
         {
@@ -62,14 +65,14 @@ function InMonocleSession
             $graphic.CopyFromScreen($MonocleIESession.Browser.Left, $MonocleIESession.Browser.Top, 0, 0, $bitmap.Size)
             $bitmap.Save($filepath)
 
-            Write-MonocleHost "Screenshot saved to: $filepath" $MonocleIESession
+            Write-MonocleHost "Screenshot saved to: $filepath" $MonocleIESession -noTab
         }
 
         throw $_.Exception
     }
     finally
     {
-        if ($MonocleIESession.Browser -ne $null)
+        if ($MonocleIESession.Browser -ne $null -and !$KeepOpen)
         {
             $MonocleIESession.Browser.Quit()
         }

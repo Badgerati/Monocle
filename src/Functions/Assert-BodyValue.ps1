@@ -5,7 +5,8 @@ function Assert-BodyValue
         [ValidateNotNull()]
         [string] $ExpectedValue,
 
-        [switch] $Contains
+        [switch] $Contains,
+        [switch] $Not
     )
 
     # Attempt to retrieve this sessions Monocle
@@ -18,16 +19,36 @@ function Assert-BodyValue
 
     if ($Contains)
     {
-        if ($body -inotmatch $ExpectedValue)
+        if ($Not)
         {
-            throw "Document body does not contain '$ExpectedValue'"
+            if ($body -imatch $ExpectedValue)
+            {
+                throw "Document body contains '$ExpectedValue'"
+            }
+        }
+        else
+        {
+            if ($body -inotmatch $ExpectedValue)
+            {
+                throw "Document body does not contain '$ExpectedValue'"
+            }
         }
     }
     else
     {
-        if ($body -ine $ExpectedValue)
+        if ($Not)
         {
-            throw "Document body does not equal '$ExpectedValue'"
+            if ($body -ieq $ExpectedValue)
+            {
+                throw "Document body equals '$ExpectedValue'"
+            }
+        }
+        else
+        {
+            if ($body -ine $ExpectedValue)
+            {
+                throw "Document body does not equal '$ExpectedValue'"
+            }
         }
     }
 }
