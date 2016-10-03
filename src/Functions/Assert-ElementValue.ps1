@@ -1,4 +1,4 @@
-function Assert-ControlValue
+function Assert-ElementValue
 {
     param (
         [Parameter(Mandatory=$true)]
