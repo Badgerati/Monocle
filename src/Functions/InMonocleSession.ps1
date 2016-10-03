@@ -1,5 +1,6 @@
 function InMonocleSession
 {
+    [CmdletBinding()]
     param (
         [Parameter(Mandatory=$true)]
         [ValidateNotNull()]
@@ -14,17 +15,20 @@ function InMonocleSession
 
         [switch] $Visible,
         [switch] $NotSilent,
+        [switch] $Quiet,
+        [switch] $Info,
         [switch] $ScreenshotOnFail,
-        [switch] $NotQuiet,
         [switch] $KeepOpen
     )
 
     $MonocleIESession = New-Object -TypeName PSObject |
         Add-Member -MemberType NoteProperty -Name Browser -Value $null -PassThru |
-        Add-Member -MemberType NoteProperty -Name Quiet -Value $false -PassThru
-    
+        Add-Member -MemberType NoteProperty -Name Quiet -Value $false -PassThru |
+        Add-Member -MemberType NoteProperty -Name Info -Value $false -PassThru
+
     $MonocleIESession.Browser = New-Object -ComObject InternetExplorer.Application
-    $MonocleIESession.Quiet = !$NotQuiet
+    $MonocleIESession.Quiet = $Quiet
+    $MonocleIESession.Info = $Info
 
     if (!$? -or $MonocleIESession -eq $null -or $MonocleIESession.Browser -eq $null)
     {
@@ -75,6 +79,7 @@ function InMonocleSession
         if ($MonocleIESession.Browser -ne $null -and !$KeepOpen)
         {
             $MonocleIESession.Browser.Quit()
+            $MonocleIESession.Browser = $null
         }
     }
 }

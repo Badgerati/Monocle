@@ -21,6 +21,15 @@ function CheckElement
         throw 'No Monocle session for IE found.'
     }
 
+    if ($Uncheck)
+    {
+        Write-MonocleHost "Unchecking element: $ElementName" $MonocleIESession
+    }
+    else
+    {
+        Write-MonocleHost "Checking element: $ElementName" $MonocleIESession
+    }
+
     # Attempt to retrieve an appropriate control
     $control = GetControl $MonocleIESession $ElementName -tagName $TagName -attributeName $AttributeName -findByValue:$FindByValue
     

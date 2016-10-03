@@ -24,6 +24,8 @@ function SetElementValue
         throw 'No Monocle session for IE found.'
     }
 
+    Write-MonocleHost "Setting element: $ElementName to value: '$Value'" $MonocleIESession
+
     # Attempt to retrieve an appropriate control
     $control = GetControl $MonocleIESession $ElementName -tagName $TagName -attributeName $AttributeName -findByValue:$FindByValue
     

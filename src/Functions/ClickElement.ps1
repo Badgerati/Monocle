@@ -19,6 +19,8 @@ function ClickElement
         throw 'No Monocle session for IE found.'
     }
 
+    Write-MonocleHost "Clicking element: $ElementName" $MonocleIESession
+
     $control = GetControl $MonocleIESession $ElementName -tagName $TagName -attributeName $AttributeName -findByValue:$FindByValue
     $control.click()
 

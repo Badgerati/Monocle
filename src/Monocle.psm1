@@ -9,14 +9,23 @@ Get-ChildItem "$root\Functions\*.ps1" |
 function SleepWhileBusy($session)
 {
     $count = 0
+    $timeout = 30
     
     while ($session.Browser.Busy)
     {
-        $count++
+        if ($count -ge $timeout)
+        {
+            throw "Loading URL has timed-out after $timeout second(s)"
+        }
+
         Start-Sleep -Seconds 1
+        $count++
     }
 
-    Write-MonocleHost "Browser busy for $count seconds(s)" $session
+    if ($count -gt 0)
+    {
+        Write-MonocleHost "Browser busy for $count seconds(s)" $session
+    }
 }
 
 
@@ -33,7 +42,7 @@ function GetControl($session, $name, $tagName = $null, $attributeName = $null, [
     # If they're set, retrieve control by tag/attribute value combo
     if (![string]::IsNullOrWhiteSpace($tagName) -and ![string]::IsNullOrWhiteSpace($attributeName))
     {
-        Write-MonocleHost "Finding control with tag <$tagName>, attribute '$attributeName' and value '$name'" $session
+        Write-MonocleInfo "Finding control with tag <$tagName>, attribute '$attributeName' and value '$name'" $session
 
         $control = $document.getElementsByTagName($tagName) |
             Where-Object { $_.getAttribute($attributeName) -imatch $name } |
@@ -51,7 +60,7 @@ function GetControl($session, $name, $tagName = $null, $attributeName = $null, [
     # If they're set, retrieve the control by tag/value combo (value then innerHTML)
     if (![string]::IsNullOrWhiteSpace($tagName) -and $findByValue)
     {
-        Write-MonocleHost "Finding control with tag <$tagName>, and value '$name'" $session
+        Write-MonocleInfo "Finding control with tag <$tagName>, and value '$name'" $session
 
         $controls = $document.getElementsByTagName($tagName)
 
@@ -76,13 +85,13 @@ function GetControl($session, $name, $tagName = $null, $attributeName = $null, [
     }
 
     # If no tag/attr combo, attempt to retrieve by ID
-    Write-MonocleHost "Finding control with identifier '$name'" $session
+    Write-MonocleInfo "Finding control with identifier '$name'" $session
     $control = $document.getElementById($name)
 
     # If no control by ID, try by first named control
     if (IsControlNull $control)
     {
-        Write-MonocleHost "Finding control with name '$name'" $session
+        Write-MonocleInfo "Finding control with name '$name'" $session
         $control = $document.getElementsByName($name) | Select-Object -First 1
     }
 
@@ -129,6 +138,16 @@ function Write-MonocleHost($message, $session, [switch]$noTab)
         }
     }
 }
+
+
+function Write-MonocleInfo($message, $session)
+{
+    if ($session -ne $null -and $session.Info -and !$session.Quiet)
+    {
+        Write-Host "INFO: $message" -ForegroundColor Yellow
+    }
+}
+
 
 function Write-MonocleError($message, $session, [switch]$noTab)
 {
