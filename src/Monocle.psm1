@@ -5,6 +5,10 @@ Get-ChildItem "$root\Functions\*.ps1" |
     Resolve-Path |
     ForEach-Object { . $_ }
 
+Get-ChildItem "$root\Assertions\*.ps1" |
+    Resolve-Path |
+    ForEach-Object { . $_ }
+
 
 function Start-SleepWhileBusy($session)
 {
@@ -255,8 +259,10 @@ function Set-IEFocus($session)
 }
 
 
-function Invoke-Screenshot($session, $screenshotName, $screenshotPath, $initialVisibleState)
+function Invoke-Screenshot($session, $screenshotName, $screenshotPath)
 {
+    $initialVisibleState = $session.Browser.Visible
+
     $session.Browser.Visible = $true
     $session.Browser.TheaterMode = $true
 

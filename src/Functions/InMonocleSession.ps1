@@ -50,7 +50,7 @@ function InMonocleSession
         if ($ScreenshotOnFail)
         {
             $screenshotName = ("{0}_{1}" -f $screenshotName, [DateTime]::Now.ToString('yyyy-MM-dd-HH-mm-ss'))
-            Invoke-Screenshot $MonocleIESession $screenshotName $ScreenshotPath $Visible
+            Invoke-Screenshot $MonocleIESession $screenshotName $ScreenshotPath
         }
 
         Write-MonocleHost "Monocle session: $Name, Failed`n`n" $MonocleIESession -noTab
