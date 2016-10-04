@@ -19,8 +19,8 @@ function ClickElement
 
     Write-MonocleHost "Clicking element: $ElementName" $MonocleIESession
 
-    $control = GetControl $MonocleIESession $ElementName -tagName $TagName -attributeName $AttributeName -findByValue:$FindByValue
+    $control = Get-Control $MonocleIESession $ElementName -tagName $TagName -attributeName $AttributeName -findByValue:$FindByValue
     $control.click()
 
-    SleepWhileBusy $MonocleIESession
+    Start-SleepWhileBusy $MonocleIESession
 }

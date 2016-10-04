@@ -47,31 +47,13 @@ function InMonocleSession
     }
     catch [exception]
     {
-        Write-MonocleHost "Monocle session: $Name, Failed`n`n" $MonocleIESession -noTab
-
         if ($ScreenshotOnFail)
         {
-            $MonocleIESession.Browser.Visible = $true
-            $MonocleIESession.Browser.TheaterMode = $true
-            SleepWhileBusy $MonocleIESession
-
-            if ([string]::IsNullOrWhiteSpace($ScreenshotPath))
-            {
-                $ScreenshotPath = $pwd
-            }
-
-            $filepath = ("$ScreenshotPath\{0}.{1}.png" -f ($Name -replace ' ', '_'), ([DateTime]::Now.ToString('yyyy-MM-dd-HH-mm-ss')))
-
-            Add-Type -AssemblyName System.Drawing
-
-            $bitmap = New-Object System.Drawing.Bitmap $MonocleIESession.Browser.Width, $MonocleIESession.Browser.Height
-            $graphic = [System.Drawing.Graphics]::FromImage($bitmap)
-            $graphic.CopyFromScreen($MonocleIESession.Browser.Left, $MonocleIESession.Browser.Top, 0, 0, $bitmap.Size)
-            $bitmap.Save($filepath)
-
-            Write-MonocleHost "Screenshot saved to: $filepath" $MonocleIESession -noTab
+            $screenshotName = ("{0}_{1}" -f $screenshotName, [DateTime]::Now.ToString('yyyy-MM-dd-HH-mm-ss'))
+            Invoke-Screenshot $MonocleIESession $screenshotName $ScreenshotPath $Visible
         }
 
+        Write-MonocleHost "Monocle session: $Name, Failed`n`n" $MonocleIESession -noTab
         throw $_.Exception
     }
     finally

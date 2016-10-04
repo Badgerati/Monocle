@@ -25,14 +25,14 @@ function ExpectElement
 
     Write-MonocleHost "Waiting for element: $ElementName" $MonocleIESession
 
-    while (IsControlNull $control)
+    while (Test-ControlNull $control)
     {
         if ($count -ge $AttemptCount)
         {
             throw ("Expected element: $ElementName`nBut found nothing`nOn: {0}" -f $MonocleIESession.Browser.LocationURL)
         }
 
-        $control = GetControl $MonocleIESession $ElementName -tagName $TagName -attributeName $AttributeName -findByValue:$FindByValue
+        $control = Get-Control $MonocleIESession $ElementName -tagName $TagName -attributeName $AttributeName -findByValue:$FindByValue -noThrow
         
         $count++
         Start-Sleep -Seconds 1

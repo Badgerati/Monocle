@@ -15,5 +15,5 @@ function ModifyUrl
 
     $Url = $MonocleIESession.Browser.LocationURL -ireplace $FindValue, $ReplaceValue
     $MonocleIESession.Browser.Navigate($Url)
-    SleepWhileBusy $MonocleIESession
+    Start-SleepWhileBusy $MonocleIESession
 }

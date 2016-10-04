@@ -21,12 +21,12 @@ function Assert-ElementValue
     # Attempt to retrieve this sessions Monocle
     Test-MonocleSession
     
-    $control = GetControl $MonocleIESession $ElementName -tagName $TagName -attributeName $AttributeName -findByValue:$FindByValue
-    $value = GetControlValue $control
+    $control = Get-Control $MonocleIESession $ElementName -tagName $TagName -attributeName $AttributeName -findByValue:$FindByValue
+    $value = Get-ControlValue $control
 
     if ($value -ine $ExpectedValue)
     {
-        $innerHtml = GetControlValue $control -useInnerHtml
+        $innerHtml = Get-ControlValue $control -useInnerHtml
 
         if ($innerHtml -ine $ExpectedValue)
         {

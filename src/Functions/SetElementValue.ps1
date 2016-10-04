@@ -24,7 +24,7 @@ function SetElementValue
     Write-MonocleHost "Setting element: $ElementName to value: '$Value'" $MonocleIESession
 
     # Attempt to retrieve an appropriate control
-    $control = GetControl $MonocleIESession $ElementName -tagName $TagName -attributeName $AttributeName -findByValue:$FindByValue
+    $control = Get-Control $MonocleIESession $ElementName -tagName $TagName -attributeName $AttributeName -findByValue:$FindByValue
     
     # Set the value of the control, if it's a select control, set the appropriate
     # option with value to be selected

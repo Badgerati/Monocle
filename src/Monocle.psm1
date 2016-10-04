@@ -6,7 +6,7 @@ Get-ChildItem "$root\Functions\*.ps1" |
     ForEach-Object { . $_ }
 
 
-function SleepWhileBusy($session)
+function Start-SleepWhileBusy($session)
 {
     $count = 0
     $timeout = 30
@@ -29,13 +29,13 @@ function SleepWhileBusy($session)
 }
 
 
-function IsControlNull($control)
+function Test-ControlNull($control)
 {
     return $control -eq $null -or $control -eq [System.DBNull]::Value
 }
 
 
-function GetControl($session, $name, $tagName = $null, $attributeName = $null, [switch]$findByValue)
+function Get-Control($session, $name, $tagName = $null, $attributeName = $null, [switch]$findByValue, [switch]$noThrow)
 {
     $document = $session.Browser.Document
 
@@ -49,7 +49,7 @@ function GetControl($session, $name, $tagName = $null, $attributeName = $null, [
             Select-Object -First 1
 
         # Throw error if can't find control
-        if (IsControlNull $control)
+        if ((Test-ControlNull $control) -and !$noThrow)
         {
             throw "Element <$tagName> with attribute '$attributeName' value of $name not found."
         }
@@ -68,7 +68,7 @@ function GetControl($session, $name, $tagName = $null, $attributeName = $null, [
             Where-Object { $_.value -ieq $name }
             Select-Object -First 1
         
-        if (IsControlNull $control)
+        if (Test-ControlNull $control)
         {
             $control = $controls |
                 Where-Object { $_.innerHTML -ieq $name }
@@ -76,7 +76,7 @@ function GetControl($session, $name, $tagName = $null, $attributeName = $null, [
         }
         
         # Throw error if can't find control
-        if (IsControlNull $control)
+        if ((Test-ControlNull $control) -and !$noThrow)
         {
             throw "Element <$tagName> with value of $name not found."
         }
@@ -89,14 +89,14 @@ function GetControl($session, $name, $tagName = $null, $attributeName = $null, [
     $control = $document.getElementById($name)
 
     # If no control by ID, try by first named control
-    if (IsControlNull $control)
+    if (Test-ControlNull $control)
     {
         Write-MonocleInfo "Finding control with name '$name'" $session
         $control = $document.getElementsByName($name) | Select-Object -First 1
     }
 
     # Throw error if can't find control
-    if (IsControlNull $control)
+    if ((Test-ControlNull $control) -and !$noThrow)
     {
         throw "Element with ID/Name of $name not found."
     }
@@ -105,7 +105,7 @@ function GetControl($session, $name, $tagName = $null, $attributeName = $null, [
 }
 
 
-function GetControlValue($control, [switch]$useInnerHtml)
+function Get-ControlValue($control, [switch]$useInnerHtml)
 {
     # Get the value of the control, if it's a select control, get the appropriate
     # option where option is selected
@@ -151,13 +151,16 @@ function Write-MonocleInfo($message, $session)
 
 function Write-MonocleError($message, $session, [switch]$noTab)
 {
-    if ($noTab)
+    if ($session -ne $null -and !$session.Quiet)
     {
-        Write-Host $message -ForegroundColor Red
-    }
-    else
-    {
-        Write-Host "`t$message" -ForegroundColor Red
+        if ($noTab)
+        {
+            Write-Host $message -ForegroundColor Red
+        }
+        else
+        {
+            Write-Host "`t$message" -ForegroundColor Red
+        }
     }
 }
 
@@ -213,6 +216,72 @@ function Test-MonocleSession()
     {
         throw 'No Monocle session for IE found.'
     }
+}
+
+
+function Set-IEFocus($session)
+{
+    try
+    {
+        if (!([System.Management.Automation.PSTypeName]'NativeHelper').Type)
+        {
+            $nativeDef =
+                @"
+                using System;
+                using System.Runtime.InteropServices;
+
+                public static class NativeHelper
+                {
+                    [DllImport("user32.dll")]
+                    [return: MarshalAs(UnmanagedType.Bool)]
+                    private static extern bool SetForegroundWindow(IntPtr hWnd);
+
+                    public static bool SetForeground(IntPtr handle)
+                    {
+                        return NativeHelper.SetForegroundWindow(handle);
+                    }
+                }
+"@
+
+            Add-Type -TypeDefinition $nativeDef
+        }
+
+        [NativeHelper]::SetForeground($session.Browser.HWND) | Out-Null
+    }
+    catch [exception]
+    {
+        Write-MonocleError 'Failed to bring IE to foreground' $session
+    }
+}
+
+
+function Invoke-Screenshot($session, $screenshotName, $screenshotPath, $initialVisibleState)
+{
+    $session.Browser.Visible = $true
+    $session.Browser.TheaterMode = $true
+
+    Set-IEFocus $session
+    Start-SleepWhileBusy $session
+
+    if ([string]::IsNullOrWhiteSpace($screenshotPath))
+    {
+        $screenshotPath = $pwd
+    }
+
+    $screenshotName = ($screenshotName -replace ' ', '_')
+    $filepath = Join-Path $screenshotPath "$screenshotName.png"
+
+    Add-Type -AssemblyName System.Drawing
+
+    $bitmap = New-Object System.Drawing.Bitmap $session.Browser.Width, $session.Browser.Height
+    $graphic = [System.Drawing.Graphics]::FromImage($bitmap)
+    $graphic.CopyFromScreen($session.Browser.Left, $session.Browser.Top, 0, 0, $bitmap.Size)
+    $bitmap.Save($filepath)
+
+    $session.Browser.TheaterMode = $false
+    $session.Browser.Visible = $initialVisibleState
+
+    Write-MonocleHost "Screenshot saved to: $filepath" $session
 }
 
 

@@ -47,5 +47,5 @@ function ExpectUrl
 
     Write-MonocleHost "Expected URL loaded after $count seconds(s)" $MonocleIESession
     
-    SleepWhileBusy $MonocleIESession
+    Start-SleepWhileBusy $MonocleIESession
 }

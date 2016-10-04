@@ -28,7 +28,7 @@ function CheckElement
     }
 
     # Attempt to retrieve an appropriate control
-    $control = GetControl $MonocleIESession $ElementName -tagName $TagName -attributeName $AttributeName -findByValue:$FindByValue
+    $control = Get-Control $MonocleIESession $ElementName -tagName $TagName -attributeName $AttributeName -findByValue:$FindByValue
     
     # Attempt to toggle the check value
     $control.Checked = !$Uncheck
