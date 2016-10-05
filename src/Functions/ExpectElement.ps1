@@ -14,7 +14,8 @@ function ExpectElement
         [Parameter(Mandatory=$false)]
         [int] $AttemptCount = 10,
 
-        [switch] $FindByValue
+        [switch] $FindByValue,
+        [switch] $MPath
     )
 
     # Attempt to retrieve this sessions Monocle
@@ -32,7 +33,7 @@ function ExpectElement
             throw ("Expected element: $ElementName`nBut found nothing`nOn: {0}" -f $MonocleIESession.Browser.LocationURL)
         }
 
-        $control = Get-Control $MonocleIESession $ElementName -tagName $TagName -attributeName $AttributeName -findByValue:$FindByValue -noThrow
+        $control = Get-Control $MonocleIESession $ElementName -tagName $TagName -attributeName $AttributeName -findByValue:$FindByValue -mpath:$MPath -noThrow
         
         $count++
         Start-Sleep -Seconds 1

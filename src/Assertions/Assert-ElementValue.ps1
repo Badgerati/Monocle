@@ -15,13 +15,14 @@ function Assert-ElementValue
         [Parameter(Mandatory=$false)]
         [string] $AttributeName,
 
-        [switch] $FindByValue
+        [switch] $FindByValue,
+        [switch] $MPath
     )
 
     # Attempt to retrieve this sessions Monocle
     Test-MonocleSession
     
-    $control = Get-Control $MonocleIESession $ElementName -tagName $TagName -attributeName $AttributeName -findByValue:$FindByValue
+    $control = Get-Control $MonocleIESession $ElementName -tagName $TagName -attributeName $AttributeName -findByValue:$FindByValue -mpath:$MPath
     $value = Get-ControlValue $control
 
     if ($value -ine $ExpectedValue)

@@ -11,7 +11,8 @@ function ClickElement
         [Parameter(Mandatory=$false)]
         [string] $AttributeName,
 
-        [switch] $FindByValue
+        [switch] $FindByValue,
+        [switch] $MPath
     )
 
     # Attempt to retrieve this sessions Monocle
@@ -19,7 +20,7 @@ function ClickElement
 
     Write-MonocleHost "Clicking element: $ElementName" $MonocleIESession
 
-    $control = Get-Control $MonocleIESession $ElementName -tagName $TagName -attributeName $AttributeName -findByValue:$FindByValue
+    $control = Get-Control $MonocleIESession $ElementName -tagName $TagName -attributeName $AttributeName -findByValue:$FindByValue -mpath:$MPath
     $control.click()
 
     Start-SleepWhileBusy $MonocleIESession

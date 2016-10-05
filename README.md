@@ -11,7 +11,7 @@ InMonocleSession 'Load YouTube' {
     SetElementValue 'search_query' 'Beerus Madness (Extended)'
     ClickElement 'search-btn'
     ExpectUrl -StartsWith 'https://www.youtube.com/results?search_query='
-    ClickElement 'Dragon Ball Super Soundtrack - Beerus Madness (Extended)' -TagName 'a' -AttributeName 'title'
+    ClickElement -MPath 'a[@title=Dragon Ball Super Soundtrack - Beerus Madness (Extended)  - Duration: 10:00.]'
     ExpectUrl 'https://www.youtube.com/watch?v=SI6Yyr-iI6M'
 } -Visible -ScreenshotOnFail
 ```

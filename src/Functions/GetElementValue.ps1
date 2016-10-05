@@ -12,12 +12,13 @@ function GetElementValue
         [string] $AttributeName,
 
         [switch] $UseInnerHtml,
-        [switch] $FindByValue
+        [switch] $FindByValue,
+        [switch] $MPath
     )
 
     # Attempt to retrieve this sessions Monocle
     Test-MonocleSession
 
-    $control = Get-Control $MonocleIESession $ElementName -tagName $TagName -attributeName $AttributeName -findByValue:$FindByValue
+    $control = Get-Control $MonocleIESession $ElementName -tagName $TagName -attributeName $AttributeName -findByValue:$FindByValue -mpath:$MPath
     return Get-ControlValue $control -useInnerHtml:$UseInnerHtml
 }

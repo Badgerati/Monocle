@@ -12,7 +12,8 @@ function CheckElement
         [string] $AttributeName,
 
         [switch] $Uncheck,
-        [switch] $FindByValue
+        [switch] $FindByValue,
+        [switch] $MPath
     )
 
     # Attempt to retrieve this sessions Monocle
@@ -28,7 +29,7 @@ function CheckElement
     }
 
     # Attempt to retrieve an appropriate control
-    $control = Get-Control $MonocleIESession $ElementName -tagName $TagName -attributeName $AttributeName -findByValue:$FindByValue
+    $control = Get-Control $MonocleIESession $ElementName -tagName $TagName -attributeName $AttributeName -findByValue:$FindByValue -mpath:$MPath
     
     # Attempt to toggle the check value
     $control.Checked = !$Uncheck

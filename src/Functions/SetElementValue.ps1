@@ -15,7 +15,8 @@ function SetElementValue
         [Parameter(Mandatory=$false)]
         [string] $AttributeName = $null,
 
-        [switch] $FindByValue
+        [switch] $FindByValue,
+        [switch] $MPath
     )
 
     # Attempt to retrieve this sessions Monocle
@@ -24,7 +25,7 @@ function SetElementValue
     Write-MonocleHost "Setting element: $ElementName to value: '$Value'" $MonocleIESession
 
     # Attempt to retrieve an appropriate control
-    $control = Get-Control $MonocleIESession $ElementName -tagName $TagName -attributeName $AttributeName -findByValue:$FindByValue
+    $control = Get-Control $MonocleIESession $ElementName -tagName $TagName -attributeName $AttributeName -findByValue:$FindByValue -mpath:$MPath
     
     # Set the value of the control, if it's a select control, set the appropriate
     # option with value to be selected

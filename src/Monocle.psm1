@@ -10,8 +10,14 @@ Get-ChildItem "$root\Assertions\*.ps1" |
     ForEach-Object { . $_ }
 
 
-function Start-SleepWhileBusy($session)
+function Start-SleepWhileBusy
 {
+    param (
+        [Parameter(Mandatory=$true)]
+        [ValidateNotNull()]
+        $session
+    )
+
     $count = 0
     $timeout = 30
     
@@ -33,17 +39,190 @@ function Start-SleepWhileBusy($session)
 }
 
 
-function Test-ControlNull($control)
+function Test-ControlNull
 {
+    param (
+        $control
+    )
+
     return $control -eq $null -or $control -eq [System.DBNull]::Value
 }
 
 
-function Get-Control($session, $name, $tagName = $null, $attributeName = $null, [switch]$findByValue, [switch]$noThrow)
+function Resolve-MPathExpression #($expr, $document = $null, $controls = $null)
 {
+    param (
+        [Parameter(Mandatory=$true)]
+        [ValidateNotNull()]
+        $expr,
+        
+        [Parameter(Mandatory=$false)]
+        $document = $null,
+        
+        [Parameter(Mandatory=$false)]
+        $controls = $null
+    )
+
+    # Regex to match an individual mpath expression
+    $regex = '^(?<tag>[a-zA-Z]+)(?<filter>\[(?<attr>\@[a-zA-Z]+|\d+)((?<opr>(\!){0,1}(\=|\~))(?<value>.+?)){0,1}\](\[(?<index>\d+)\]){0,1}){0,1}$'
+    $foundControls = $null
+
+    # ensure the expression is valid against the regex
+    if ($expr -match $regex)
+    {
+        $tag = $Matches['tag']
+        
+        # find initial controls based on the tag from document or previously found controls
+        if ($document -ne $null)
+        {
+            $foundControls = $document.getElementsByTagName($tag)
+        }
+        else
+        {
+            $foundControls = $controls | ForEach-Object { $_.getElementsByTagName($tag) }
+        }
+
+        # if there's a filter, then filter down the found controls above
+        if (![string]::IsNullOrWhiteSpace($Matches['filter']))
+        {
+            $attr = $Matches['attr']
+            $opr = $Matches['opr']
+            $value = $Matches['value']
+            $index = $Matches['index']
+
+            # filtering by attributes starts with an '@', else we have an index into the controls
+            if ($attr.StartsWith('@'))
+            {
+                $attr = $attr.Trim('@')
+
+                # if there's no operator, then use all controls that have a non-empty attribute
+                if ([string]::IsNullOrWhiteSpace($opr))
+                {
+                    $foundControls = $foundControls | Where-Object { ![string]::IsNullOrWhiteSpace($_.getAttribute($attr)) }
+                }
+                else
+                {
+                    # find controls based on validaity of attribute to passed value
+                    switch ($opr)
+                    {
+                        '='
+                        {
+                            $foundControls = $foundControls | Where-Object { $_.getAttribute($attr) -ieq $value }
+                        }
+
+                        '~'
+                        {
+                            $foundControls = $foundControls | Where-Object { $_.getAttribute($attr) -imatch $value }
+                        }
+
+                        '!='
+                        {
+                            $foundControls = $foundControls | Where-Object { $_.getAttribute($attr) -ine $value }
+                        }
+
+                        '!~'
+                        {
+                            $foundControls = $foundControls | Where-Object { $_.getAttribute($attr) -inotmatch $value }
+                        }
+                    }
+                }
+
+                # select a control from the filtered controls based on index (could sometimes happen)
+                if (![string]::IsNullOrWhiteSpace($index))
+                {
+                    $foundControls = $foundControls | Select-Object -Skip ([int]$index) -First 1
+                }
+            }
+            else
+            {
+                # select the control based on index of found controls
+                $foundControls = $foundControls | Select-Object -Skip ([int]$attr) -First 1
+            }
+        }
+    }
+    else
+    {
+        throw "MPath expression is not valid: $expr"
+    }
+
+    return $foundControls
+}
+
+
+function Resolve-MPath
+{
+    param (
+        [Parameter(Mandatory=$true)]
+        [ValidateNotNull()]
+        $session,
+        
+        [Parameter(Mandatory=$true)]
+        [ValidateNotNull()]
+        [string] $mpath
+    )
+
+    # split into multiple expressions
+    $exprs = $mpath -split '/'
+
+    # if there are no expression, return null
+    if ($exprs -eq $null -or $exprs.length -eq 0)
+    {
+        return [System.DBNull]::Value
+    }
+
+    # find initial controls based on the document and first expression
+    $controls = Resolve-MPathExpression $exprs[0] -document $session.Browser.Document
+
+    # find rest of controls from the previous controls found above
+    for ($i = 1; $i -lt $exprs.length; $i++)
+    {
+        $controls = Resolve-MPathExpression $exprs[$i] -controls $controls
+    }
+
+    # Monocle only deals with single controls, so return the first
+    return ($controls | Select-Object -First 1)
+}
+
+
+function Get-Control
+{
+    param (
+        [Parameter(Mandatory=$true)]
+        [ValidateNotNull()]
+        $session,
+
+        [Parameter(Mandatory=$true)]
+        [ValidateNotNull()]
+        [string] $name,
+
+        [Parameter(Mandatory=$false)]
+        [string] $tagName = $null,
+        
+        [Parameter(Mandatory=$false)]
+        [string] $attributeName = $null,
+
+        [switch] $findByValue,
+        [switch] $noThrow,
+        [switch] $mpath
+    )
+
     $document = $session.Browser.Document
 
-    # If they're set, retrieve control by tag/attribute value combo
+    # if it's set, find control based on mpath
+    if ($mpath -and ![string]::IsNullOrWhiteSpace($name))
+    {
+        $control = Resolve-MPath $session $name
+
+        # throw error if can't find control
+        if ((Test-ControlNull $control) -and !$noThrow)
+        {
+            throw "Cannot find any element based on the MPath supplied: $name"
+        }
+
+        return $control
+    }
+
+    # if they're set, retrieve control by tag/attribute value combo
     if (![string]::IsNullOrWhiteSpace($tagName) -and ![string]::IsNullOrWhiteSpace($attributeName))
     {
         Write-MonocleInfo "Finding control with tag <$tagName>, attribute '$attributeName' and value '$name'" $session
@@ -52,7 +231,7 @@ function Get-Control($session, $name, $tagName = $null, $attributeName = $null, 
             Where-Object { $_.getAttribute($attributeName) -imatch $name } |
             Select-Object -First 1
 
-        # Throw error if can't find control
+        # throw error if can't find control
         if ((Test-ControlNull $control) -and !$noThrow)
         {
             throw "Element <$tagName> with attribute '$attributeName' value of $name not found."
@@ -61,7 +240,7 @@ function Get-Control($session, $name, $tagName = $null, $attributeName = $null, 
         return $control
     }
 
-    # If they're set, retrieve the control by tag/value combo (value then innerHTML)
+    # if they're set, retrieve the control by tag/value combo (value then innerHTML)
     if (![string]::IsNullOrWhiteSpace($tagName) -and $findByValue)
     {
         Write-MonocleInfo "Finding control with tag <$tagName>, and value '$name'" $session
@@ -79,7 +258,7 @@ function Get-Control($session, $name, $tagName = $null, $attributeName = $null, 
                 Select-Object -First 1
         }
         
-        # Throw error if can't find control
+        # throw error if can't find control
         if ((Test-ControlNull $control) -and !$noThrow)
         {
             throw "Element <$tagName> with value of $name not found."
@@ -88,18 +267,18 @@ function Get-Control($session, $name, $tagName = $null, $attributeName = $null, 
         return $control
     }
 
-    # If no tag/attr combo, attempt to retrieve by ID
+    # if no tag/attr combo, attempt to retrieve by ID
     Write-MonocleInfo "Finding control with identifier '$name'" $session
     $control = $document.getElementById($name)
 
-    # If no control by ID, try by first named control
+    # if no control by ID, try by first named control
     if (Test-ControlNull $control)
     {
         Write-MonocleInfo "Finding control with name '$name'" $session
         $control = $document.getElementsByName($name) | Select-Object -First 1
     }
 
-    # Throw error if can't find control
+    # throw error if can't find control
     if ((Test-ControlNull $control) -and !$noThrow)
     {
         throw "Element with ID/Name of $name not found."
@@ -109,16 +288,21 @@ function Get-Control($session, $name, $tagName = $null, $attributeName = $null, 
 }
 
 
-function Get-ControlValue($control, [switch]$useInnerHtml)
+function Get-ControlValue
 {
-    # Get the value of the control, if it's a select control, get the appropriate
+    param (
+        $control,
+        [switch] $useInnerHtml
+    )
+
+    # get the value of the control, if it's a select control, get the appropriate
     # option where option is selected
     if ($control.Length -gt 1 -and $control[0].tagName -ieq 'option')
     {
         return ($control | Where-Object { $_.Selected -eq $true }).innerHTML
     }
 
-    # If not a select control, then return either the innerHTML or value
+    # if not a select control, then return either the innerHTML or value
     if ($useInnerHtml)
     {
         return $control.innerHTML
@@ -128,8 +312,14 @@ function Get-ControlValue($control, [switch]$useInnerHtml)
 }
 
 
-function Write-MonocleHost($message, $session, [switch]$noTab)
+function Write-MonocleHost
 {
+    param (
+        $message,
+        $session,
+        [switch] $noTab
+    )
+
     if ($session -ne $null -and !$session.Quiet)
     {
         if ($noTab)
@@ -144,8 +334,13 @@ function Write-MonocleHost($message, $session, [switch]$noTab)
 }
 
 
-function Write-MonocleInfo($message, $session)
+function Write-MonocleInfo
 {
+    param (
+        $message,
+        $session
+    )
+
     if ($session -ne $null -and $session.Info -and !$session.Quiet)
     {
         Write-Host "INFO: $message" -ForegroundColor Yellow
@@ -153,8 +348,14 @@ function Write-MonocleInfo($message, $session)
 }
 
 
-function Write-MonocleError($message, $session, [switch]$noTab)
+function Write-MonocleError
 {
+    param (
+        $message,
+        $session,
+        [switch] $noTab
+    )
+
     if ($session -ne $null -and !$session.Quiet)
     {
         if ($noTab)
@@ -169,12 +370,18 @@ function Write-MonocleError($message, $session, [switch]$noTab)
 }
 
 
-function Test-Url($url)
+function Test-Url
 {
-    # Truncate the URL of any query parameters
+    param (
+        [Parameter(Mandatory=$true)]
+        [ValidateNotNull()]
+        [string] $url
+    )
+
+    # truncate the URL of any query parameters
     $url = ([System.Uri]$url).GetLeftPart([System.UriPartial]::Path)
 
-    # Initial code setting as success
+    # initial code setting as success
     $code = 200
     $message = [string]::Empty
 
@@ -188,7 +395,7 @@ function Test-Url($url)
     {
         $ex = $_.Exception
         
-        # If the exception doesn't contain a Response, then either the
+        # if the exception doesn't contain a Response, then either the
         # host doesn't exist, there were SSL issues, or something else went wrong
         if ($ex.Response -eq $null)
         {
@@ -202,7 +409,7 @@ function Test-Url($url)
         }
     }
 
-    # Anything that is 1xx-2xx is normally successful, anything that's
+    # anything that is 1xx-2xx is normally successful, anything that's
     # 300+ is normally always a failure to load
     # -1 is a fatal error (SSL, invalid host, etc)
     if ($code -eq -1 -or $code -ge 300)
@@ -214,7 +421,7 @@ function Test-Url($url)
 }
 
 
-function Test-MonocleSession()
+function Test-MonocleSession
 {
     if ((Get-Variable -Name MonocleIESession -ValueOnly -ErrorAction Stop) -eq $null)
     {
@@ -223,8 +430,14 @@ function Test-MonocleSession()
 }
 
 
-function Set-IEFocus($session)
+function Set-IEFocus
 {
+    param (
+        [Parameter(Mandatory=$true)]
+        [ValidateNotNull()]
+        $session
+    )
+
     try
     {
         if (!([System.Management.Automation.PSTypeName]'NativeHelper').Type)
@@ -259,8 +472,20 @@ function Set-IEFocus($session)
 }
 
 
-function Invoke-Screenshot($session, $screenshotName, $screenshotPath)
+function Invoke-Screenshot
 {
+    param (
+        [Parameter(Mandatory=$true)]
+        [ValidateNotNull()]
+        $session,
+
+        [Parameter(Mandatory=$true)]
+        [ValidateNotNull()]
+        [string] $screenshotName,
+
+        [string] $screenshotPath
+    )
+
     $initialVisibleState = $session.Browser.Visible
 
     $session.Browser.Visible = $true
