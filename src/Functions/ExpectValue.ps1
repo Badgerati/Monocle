@@ -9,7 +9,7 @@ function ExpectValue
         [int] $AttemptCount = 10
     )
 
-    # Attempt to retrieve this sessions Monocle
+    # Attempt to retrieve this session
     Test-MonocleSession
 
     $count = 0

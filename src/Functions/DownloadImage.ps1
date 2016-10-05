@@ -1,4 +1,4 @@
-function Assert-ElementValue
+function DownloadImage
 {
     param (
         [Parameter(Mandatory=$true)]
@@ -7,7 +7,7 @@ function Assert-ElementValue
 
         [Parameter(Mandatory=$true)]
         [ValidateNotNull()]
-        [string] $ExpectedValue,
+        [string] $OutFile,
 
         [Parameter(Mandatory=$false)]
         [string] $TagName,
@@ -19,19 +19,23 @@ function Assert-ElementValue
         [switch] $MPath
     )
 
-    # Attempt to retrieve this session
+    # attemp to retrieve this session
     Test-MonocleSession
-    
+
+    Write-MonocleHost "Downloading image from $ElementName" $MonocleIESession
+
     $control = Get-Control $MonocleIESession $ElementName -tagName $TagName -attributeName $AttributeName -findByValue:$FindByValue -mpath:$MPath
-    $value = Get-ControlValue $control
 
-    if ($value -ine $ExpectedValue)
+    $tag = $control.tagName
+    if ($tag -ine 'img' -and $tag -ine 'image')
     {
-        $innerHtml = Get-ControlValue $control -useInnerHtml
-
-        if ($innerHtml -ine $ExpectedValue)
-        {
-            throw ("Control's value is not valid.`nExpected: {0}`nBut got Value: {1}`nand InnerHTML: {2}" -f $ExpectedValue, $value, $innerHtml)
-        }
+        throw "Element $ElementName is not an image element: $tag"
     }
+
+    if ([string]::IsNullOrWhiteSpace($control.src))
+    {
+        throw "Element $ElementName has no src attribute"
+    }
+
+    Invoke-DownloadImage $MonocleIESession $control.src $OutFile
 }

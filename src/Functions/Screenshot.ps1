@@ -9,7 +9,7 @@ function Screenshot
         [string] $Path
     )
 
-    # Attempt to retrieve this sessions Monocle
+    # Attempt to retrieve this session
     Test-MonocleSession
 
     Invoke-Screenshot $MonocleIESession $Name $Path

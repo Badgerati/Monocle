@@ -16,7 +16,7 @@ function GetElementValue
         [switch] $MPath
     )
 
-    # Attempt to retrieve this sessions Monocle
+    # Attempt to retrieve this session
     Test-MonocleSession
 
     $control = Get-Control $MonocleIESession $ElementName -tagName $TagName -attributeName $AttributeName -findByValue:$FindByValue -mpath:$MPath

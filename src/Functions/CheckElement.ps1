@@ -16,7 +16,7 @@ function CheckElement
         [switch] $MPath
     )
 
-    # Attempt to retrieve this sessions Monocle
+    # Attempt to retrieve this session
     Test-MonocleSession
 
     if ($Uncheck)

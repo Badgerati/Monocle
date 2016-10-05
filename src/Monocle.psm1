@@ -64,7 +64,7 @@ function Resolve-MPathExpression #($expr, $document = $null, $controls = $null)
     )
 
     # Regex to match an individual mpath expression
-    $regex = '^(?<tag>[a-zA-Z]+)(?<filter>\[(?<attr>\@[a-zA-Z]+|\d+)((?<opr>(\!){0,1}(\=|\~))(?<value>.+?)){0,1}\](\[(?<index>\d+)\]){0,1}){0,1}$'
+    $regex = '^(?<tag>[a-zA-Z]+)(?<filter>\[(?<attr>\@[a-zA-Z\-]+|\d+)((?<opr>(\!){0,1}(\=|\~))(?<value>.+?)){0,1}\](\[(?<index>\d+)\]){0,1}){0,1}$'
     $foundControls = $null
 
     # ensure the expression is valid against the regex
@@ -309,6 +309,32 @@ function Get-ControlValue
     }
 
     return $control.value
+}
+
+
+function Invoke-DownloadImage
+{
+    param (
+        [Parameter(Mandatory=$true)]
+        [ValidateNotNull()]
+        $session,
+
+        [Parameter(Mandatory=$true)]
+        [ValidateNotNull()]
+        [string] $imageSrc,
+
+        [Parameter(Mandatory=$true)]
+        [ValidateNotNull()]
+        [string] $outFile
+    )
+
+    Write-MonocleInfo "Downloading '$imageSrc' to '$outFile'" $session
+
+    Invoke-WebRequest -Uri $imageSrc -OutFile $outFile | Out-Null
+    if (!$?)
+    {
+        throw 'Failed to download image'
+    }
 }
 
 

@@ -6,7 +6,7 @@ function NavigateTo
         [string] $Url
     )
 
-    # Attempt to retrieve this sessions Monocle
+    # Attempt to retrieve this session
     Test-MonocleSession
     
     # Test the URL first, ensure it exists

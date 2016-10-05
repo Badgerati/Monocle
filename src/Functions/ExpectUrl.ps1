@@ -11,7 +11,7 @@ function ExpectUrl
         [switch] $StartsWith
     )
 
-    # Attempt to retrieve this sessions Monocle
+    # Attempt to retrieve this session
     Test-MonocleSession
 
     $count = 0

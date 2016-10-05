@@ -6,7 +6,7 @@ function SleepBrowser
         [int] $Seconds
     )
 
-    # Attempt to retrieve this sessions Monocle
+    # Attempt to retrieve this session
     Test-MonocleSession
     
     Write-MonocleHost "Sleeping for $Seconds second(s)" $MonocleIESession

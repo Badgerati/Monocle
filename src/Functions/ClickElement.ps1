@@ -15,7 +15,7 @@ function ClickElement
         [switch] $MPath
     )
 
-    # Attempt to retrieve this sessions Monocle
+    # Attempt to retrieve this session
     Test-MonocleSession
 
     Write-MonocleHost "Clicking element: $ElementName" $MonocleIESession

@@ -8,7 +8,7 @@ function Assert-BodyValue
         [switch] $Not
     )
 
-    # Attempt to retrieve this sessions Monocle
+    # Attempt to retrieve this session
     Test-MonocleSession
 
     $body = $MonocleIESession.Browser.Document.body.outerHTML
