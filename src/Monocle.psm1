@@ -542,4 +542,22 @@ function Invoke-Screenshot
 }
 
 
-#Export-ModuleMember -Function InMonocleSession, NavigateTo
+$exportFunctions = @(
+    'Assert-BodyValue',
+    'Assert-ElementValue',
+    'CheckElement',
+    'ClickElement',
+    'DownloadImage',
+    'ExpectElement',
+    'ExpectUrl',
+    'ExpectValue',
+    'GetElementValue',
+    'InMonocleSession',
+    'ModifyUrl',
+    'NavigateTo',
+    'Screenshot',
+    'SetElementValue',
+    'SleepBrowser'
+)
+
+Export-ModuleMember -Function $exportFunctions
