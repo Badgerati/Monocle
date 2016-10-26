@@ -43,6 +43,87 @@ InMonocleSession 'Load YouTube' {
 } -Visible -ScreenshotOnFail
 ```
 
+# Documentation
+## Functions
+The following is a list of available functions in Monocle. These can be used, after calling `Import-Module Monocle`.
+
+ * CheckElement
+ * ClickElement
+ * DownloadImage
+ * ExpectElement
+ * ExpectUrl
+ * ExpectValue
+ * GetElementValue
+ * InMonocleSession
+ * ModifyUrl
+ * NavigateTo
+ * Screenshot
+ * SetElementValue
+ * SleepBrowser
+
+The following is a list of assertions available in Monocle:
+
+ * Assert-BodyValue
+ * Assert-ElementValue
+
+## MPath
+MPath, or Monocle Path, is very similar to XPath and allows you to pin-point elements more easily.
+You find elements initially by tag, and then optionally by zero-based index or attribute.
+
+For example, take the following HTML:
+
+```HTML
+<html>
+    <head>
+        <title>Example</title>
+    </head>
+    <body>
+        <form method='post' action='/example'>
+            <input type='text' id='SomeInput' />
+            <input type='text' data-type='test' />
+            <input type='text' data-type='test' />
+            <input type='submit' />
+        </form>
+    </body>
+</html>
+```
+
+Here we have a very basic form with 3 textual inputs and a submit button.
+
+Let's say we want to update the value of the first textual input, the one witn a ID of `SomeInput`. The MPath to select this element would be:
+
+```
+form/input[@id=SomeInput]
+```
+
+In MPath, each query for an element is split by a slash (/). Each query starts with a tag name (form or input), followed optionally by square-brackets and a filter ([@id=SomeInput]).
+Splitting down on the above MPath, Monocle will first find all `form` elements on the page. Then, it will find all input elements within those forms that have an `id` of `SomeInput`.
+
+We can also simplify the above MPath to merely just:
+
+```
+input[@id=SomeInput]
+```
+
+Since Monocle only interacts with single elements, then once all queries have run the top first 1 element from the whole MPath is returned.
+
+Let's now say we only want to update the value of the third textual input. Well, this one doesn't have an identifiers, so the MPath looks as follows:
+
+```
+form/input[2]
+```
+
+MPath is zero-based, so `input[2]` will select the third element in the form. Note, if you have two forms on your page, either use `form[0]` or `form[1]` else `input[2]` will literally return the third input in total.
+If we just left the above as `form/input` then the input with ID of SomeInput will have been returned.
+
+A more complex way of selecting the third input will be as follows:
+
+```
+form/input[@data-type=test][1]
+```
+
+Now, we will select the two inputs that have their `data-type` set to `test`, and then we will select the second of these inputs.
+
 # FAQ
  * I keep receiving the error:
    
