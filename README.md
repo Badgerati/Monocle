@@ -42,3 +42,13 @@ InMonocleSession 'Load YouTube' {
     
 } -Visible -ScreenshotOnFail
 ```
+
+# FAQ
+ * I keep receiving the error:
+   
+   ```
+   Creating an instance of the COM component with CLSID {0002DF01-0000-0000-C000-000000000046} from the IClassFactory 
+   failed due to the following error: 800704a6 A system shutdown has already been scheduled. (Exception from HRESULT: 0x800704A6).
+   ```
+
+   Solution: Open IE, open setting the Compatability Viewing. Uncheck the two check boxes.

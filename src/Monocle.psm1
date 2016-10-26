@@ -49,7 +49,7 @@ function Test-ControlNull
 }
 
 
-function Resolve-MPathExpression #($expr, $document = $null, $controls = $null)
+function Resolve-MPathExpression 
 {
     param (
         [Parameter(Mandatory=$true)]
@@ -143,6 +143,11 @@ function Resolve-MPathExpression #($expr, $document = $null, $controls = $null)
     else
     {
         throw "MPath expression is not valid: $expr"
+    }
+
+    if (($foundControls | Measure-Object).Count -eq 0)
+    {
+        throw "Failed to find elements for: $expr"
     }
 
     return $foundControls
