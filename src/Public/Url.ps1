@@ -1,9 +1,11 @@
 function NavigateTo
 {
+    [CmdletBinding()]
     param (
         [Parameter(Mandatory=$true)]
         [ValidateNotNull()]
-        [string] $Url
+        [string]
+        $Url
     )
 
     # Attempt to retrieve this session
@@ -20,14 +22,17 @@ function NavigateTo
 
 function ModifyUrl
 {
+    [CmdletBinding()]
     param (
         [Parameter(Mandatory=$true)]
         [ValidateNotNull()]
-        [string] $FindValue,
+        [string]
+        $FindValue,
 
         [Parameter(Mandatory=$true)]
         [ValidateNotNull()]
-        [string] $ReplaceValue
+        [string]
+        $ReplaceValue
     )
 
     # Attempt to retrieve this session
@@ -40,15 +45,19 @@ function ModifyUrl
 
 function ExpectUrl
 {
+    [CmdletBinding()]
     param (
         [Parameter(Mandatory=$true)]
         [ValidateNotNull()]
-        [string] $Url,
+        [string]
+        $Url,
 
-        [Parameter(Mandatory=$false)]
-        [int] $AttemptCount = 10,
+        [Parameter()]
+        [int]
+        $AttemptCount = 10,
 
-        [switch] $StartsWith
+        [switch]
+        $StartsWith
     )
 
     # Attempt to retrieve this session

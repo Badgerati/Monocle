@@ -3,16 +3,15 @@ function Start-SleepWhileBusy
     param (
         [Parameter(Mandatory=$true)]
         [ValidateNotNull()]
-        $session
+        $Session
     )
 
     $count = 0
     $timeout = 30
     
-    while ($session.Browser.Busy)
+    while ($Session.Browser.Busy)
     {
-        if ($count -ge $timeout)
-        {
+        if ($count -ge $timeout) {
             throw "Loading URL has timed-out after $timeout second(s)"
         }
 
@@ -20,9 +19,8 @@ function Start-SleepWhileBusy
         $count++
     }
 
-    if ($count -gt 0)
-    {
-        Write-MonocleHost "Browser busy for $count seconds(s)" $session
+    if ($count -gt 0) {
+        Write-MonocleHost "Browser busy for $count seconds(s)" $Session
     }
 }
 
@@ -35,18 +33,19 @@ function Invoke-DownloadImage
 
         [Parameter(Mandatory=$true)]
         [ValidateNotNull()]
-        [string] $imageSrc,
+        [string]
+        $imageSrc,
 
         [Parameter(Mandatory=$true)]
         [ValidateNotNull()]
-        [string] $outFile
+        [string]
+        $outFile
     )
 
     Write-MonocleInfo "Downloading '$imageSrc' to '$outFile'" $session
 
     Invoke-WebRequest -Uri $imageSrc -OutFile $outFile | Out-Null
-    if (!$?)
-    {
+    if (!$?) {
         throw 'Failed to download image'
     }
 }
@@ -54,19 +53,22 @@ function Invoke-DownloadImage
 function Write-MonocleHost
 {
     param (
+        [Parameter()]
         $message,
+
+        [Parameter()]
         $session,
-        [switch] $noTab
+
+        [switch]
+        $noTab
     )
 
-    if ($session -ne $null -and !$session.Quiet)
+    if (($null -ne $session) -and !$session.Quiet)
     {
-        if ($noTab)
-        {
+        if ($noTab) {
             Write-Host $message
         }
-        else
-        {
+        else {
             Write-Host "`t$message"
         }
     }
@@ -75,12 +77,14 @@ function Write-MonocleHost
 function Write-MonocleInfo
 {
     param (
+        [Parameter()]
         $message,
+
+        [Parameter()]
         $session
     )
 
-    if ($session -ne $null -and $session.Info -and !$session.Quiet)
-    {
+    if (($null -ne $session) -and $session.Info -and !$session.Quiet) {
         Write-Host "INFO: $message" -ForegroundColor Yellow
     }
 }
@@ -88,19 +92,22 @@ function Write-MonocleInfo
 function Write-MonocleError
 {
     param (
+        [Parameter()]
         $message,
+
+        [Parameter()]
         $session,
-        [switch] $noTab
+
+        [switch]
+        $noTab
     )
 
-    if ($session -ne $null -and !$session.Quiet)
+    if (($null -ne $session) -and !$session.Quiet)
     {
-        if ($noTab)
-        {
+        if ($noTab) {
             Write-Host $message -ForegroundColor Red
         }
-        else
-        {
+        else {
             Write-Host "`t$message" -ForegroundColor Red
         }
     }
@@ -111,7 +118,8 @@ function Test-Url
     param (
         [Parameter(Mandatory=$true)]
         [ValidateNotNull()]
-        [string] $url
+        [string]
+        $url
     )
 
     # truncate the URL of any query parameters
@@ -121,8 +129,7 @@ function Test-Url
     $code = 200
     $message = [string]::Empty
 
-    try
-    {
+    try {
         $result = Invoke-WebRequest -Uri $url -TimeoutSec 30
         $code = [int]$result.StatusCode
         $message = $result.StatusDescription
@@ -133,13 +140,11 @@ function Test-Url
         
         # if the exception doesn't contain a Response, then either the
         # host doesn't exist, there were SSL issues, or something else went wrong
-        if ($ex.Response -eq $null)
-        {
+        if ($null -eq $ex.Response) {
             $code = -1
             $message = $ex.Message
         }
-        else
-        {
+        else {
             $code = [int]$ex.Response.StatusCode.Value__
             $message = $ex.Response.StatusDescription
         }
@@ -148,8 +153,7 @@ function Test-Url
     # anything that is 1xx-2xx is normally successful, anything that's
     # 300+ is normally always a failure to load
     # -1 is a fatal error (SSL, invalid host, etc)
-    if ($code -eq -1 -or $code -ge 300)
-    {
+    if ($code -eq -1 -or $code -ge 300) {
         throw "Failed to load URL: '$url'`nStatus: $code`nMessage: $message"
     }
 
@@ -158,8 +162,7 @@ function Test-Url
 
 function Test-MonocleSession
 {
-    if ((Get-Variable -Name MonocleIESession -ValueOnly -ErrorAction Stop) -eq $null)
-    {
+    if ($null -eq (Get-Variable -Name MonocleIESession -ValueOnly -ErrorAction Stop)) {
         throw 'No Monocle session for IE found.'
     }
 }
@@ -199,8 +202,7 @@ function Set-IEFocus
 
         [NativeHelper]::SetForeground($session.Browser.HWND) | Out-Null
     }
-    catch [exception]
-    {
+    catch [exception] {
         Write-MonocleError 'Failed to bring IE to foreground' $session
     }
 }
@@ -214,9 +216,11 @@ function Invoke-Screenshot
 
         [Parameter(Mandatory=$true)]
         [ValidateNotNull()]
-        [string] $screenshotName,
+        [string]
+        $screenshotName,
 
-        [string] $screenshotPath
+        [string]
+        $screenshotPath
     )
 
     $initialVisibleState = $session.Browser.Visible
@@ -227,8 +231,7 @@ function Invoke-Screenshot
     Set-IEFocus $session
     Start-SleepWhileBusy $session
 
-    if ([string]::IsNullOrWhiteSpace($screenshotPath))
-    {
+    if ([string]::IsNullOrWhiteSpace($screenshotPath)) {
         $screenshotPath = $pwd
     }
 

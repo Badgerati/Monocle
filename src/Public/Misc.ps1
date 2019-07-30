@@ -1,27 +1,32 @@
 function SleepBrowser
 {
+    [CmdletBinding()]
     param (
         [Parameter(Mandatory=$true)]
         [ValidateNotNull()]
-        [int] $Seconds
+        [int]
+        $Seconds
     )
 
     # Attempt to retrieve this session
     Test-MonocleSession
-    
+
     Write-MonocleHost "Sleeping for $Seconds second(s)" $MonocleIESession
     Start-Sleep -Seconds $Seconds
 }
 
 function Screenshot
 {
+    [CmdletBinding()]
     param (
         [Parameter(Mandatory=$true)]
         [ValidateNotNull()]
-        [string] $Name,
+        [string]
+        $Name,
 
-        [Parameter(Mandatory=$false)]
-        [string] $Path
+        [Parameter()]
+        [string]
+        $Path
     )
 
     # Attempt to retrieve this session
@@ -33,23 +38,31 @@ function Screenshot
 
 function DownloadImage
 {
+    [CmdletBinding()]
     param (
         [Parameter(Mandatory=$true)]
         [ValidateNotNull()]
-        [string] $ElementName,
+        [string]
+        $ElementName,
 
         [Parameter(Mandatory=$true)]
         [ValidateNotNull()]
-        [string] $OutFile,
+        [string]
+        $OutFile,
 
-        [Parameter(Mandatory=$false)]
-        [string] $TagName,
+        [Parameter()]
+        [string]
+        $TagName,
 
-        [Parameter(Mandatory=$false)]
-        [string] $AttributeName,
+        [Parameter()]
+        [string]
+        $AttributeName,
 
-        [switch] $FindByValue,
-        [switch] $MPath
+        [switch]
+        $FindByValue,
+
+        [switch]
+        $MPath
     )
 
     # attemp to retrieve this session
@@ -57,16 +70,14 @@ function DownloadImage
 
     Write-MonocleHost "Downloading image from $ElementName" $MonocleIESession
 
-    $control = Get-Control $MonocleIESession $ElementName -tagName $TagName -attributeName $AttributeName -findByValue:$FindByValue -mpath:$MPath
+    $control = Get-Control $MonocleIESession $ElementName -TagName $TagName -AttributeName $AttributeName -FindByValue:$FindByValue -MPath:$MPath
 
     $tag = $control.tagName
-    if ($tag -ine 'img' -and $tag -ine 'image')
-    {
+    if (($tag -ine 'img') -and ($tag -ine 'image')) {
         throw "Element $ElementName is not an image element: $tag"
     }
 
-    if ([string]::IsNullOrWhiteSpace($control.src))
-    {
+    if ([string]::IsNullOrWhiteSpace($control.src)) {
         throw "Element $ElementName has no src attribute"
     }
 

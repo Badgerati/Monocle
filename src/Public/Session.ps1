@@ -4,21 +4,35 @@ function InMonocleSession
     param (
         [Parameter(Mandatory=$true)]
         [ValidateNotNull()]
-        [string] $Name,
+        [string]
+        $Name,
 
         [Parameter(Mandatory=$true)]
         [ValidateNotNull()]
-        [scriptblock] $ScriptBlock,
+        [scriptblock]
+        $ScriptBlock,
 
-        [Parameter(Mandatory=$false)]
-        [string] $ScreenshotPath,
+        [Parameter()]
+        [string]
+        $ScreenshotPath,
 
-        [switch] $Visible,
-        [switch] $NotSilent,
-        [switch] $Quiet,
-        [switch] $Info,
-        [switch] $ScreenshotOnFail,
-        [switch] $KeepOpen
+        [switch]
+        $Visible,
+
+        [switch]
+        $NotSilent,
+
+        [switch]
+        $Quiet,
+
+        [switch]
+        $Info,
+
+        [switch]
+        $ScreenshotOnFail,
+
+        [switch]
+        $KeepOpen
     )
 
     $MonocleIESession = New-Object -TypeName PSObject |
@@ -30,8 +44,7 @@ function InMonocleSession
     $MonocleIESession.Quiet = $Quiet
     $MonocleIESession.Info = $Info
 
-    if (!$? -or $MonocleIESession -eq $null -or $MonocleIESession.Browser -eq $null)
-    {
+    if (!$? -or ($null -eq $MonocleIESession) -or ($null -eq $MonocleIESession.Browser)) {
         throw 'Failed to create Monocle session for IE.'
     }
 
@@ -39,16 +52,14 @@ function InMonocleSession
     $MonocleIESession.Browser.Silent = !$NotSilent
     $MonocleIESession.Browser.TheaterMode = $false
 
-    try
-    {
+    try {
         Write-MonocleHost "Monocle session: $Name" $MonocleIESession -noTab
         & $ScriptBlock
         Write-MonocleHost "Monocle session: $Name, Success`n`n" $MonocleIESession -noTab
     }
     catch [exception]
     {
-        if ($ScreenshotOnFail)
-        {
+        if ($ScreenshotOnFail) {
             $screenshotName = ("{0}_{1}" -f $screenshotName, [DateTime]::Now.ToString('yyyy-MM-dd-HH-mm-ss'))
             Invoke-Screenshot $MonocleIESession $screenshotName $ScreenshotPath
         }
@@ -58,8 +69,7 @@ function InMonocleSession
     }
     finally
     {
-        if ($MonocleIESession.Browser -ne $null -and !$KeepOpen)
-        {
+        if (($null -ne $MonocleIESession.Browser) -and !$KeepOpen) {
             $MonocleIESession.Browser.Quit()
             $MonocleIESession.Browser = $null
         }

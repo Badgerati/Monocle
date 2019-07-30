@@ -1,10 +1,11 @@
 function Test-ControlNull
 {
     param (
-        $control
+        [Parameter()]
+        $Control
     )
 
-    return $control -eq $null -or $control -eq [System.DBNull]::Value
+    return (($null -eq $Control) -or ($Control -eq [System.DBNull]::Value))
 }
 
 function Get-Control
@@ -12,99 +13,101 @@ function Get-Control
     param (
         [Parameter(Mandatory=$true)]
         [ValidateNotNull()]
-        $session,
+        $Session,
 
         [Parameter(Mandatory=$true)]
         [ValidateNotNull()]
-        [string] $name,
+        [string]
+        $Name,
 
-        [Parameter(Mandatory=$false)]
-        [string] $tagName = $null,
+        [Parameter()]
+        [string]
+        $TagName = $null,
         
-        [Parameter(Mandatory=$false)]
-        [string] $attributeName = $null,
+        [Parameter()]
+        [string]
+        $AttributeName = $null,
 
-        [switch] $findByValue,
-        [switch] $noThrow,
-        [switch] $mpath
+        [switch]
+        $FindByValue,
+
+        [switch]
+        $NoThrow,
+
+        [switch]
+        $MPath
     )
 
-    $document = $session.Browser.Document
+    $document = $Session.Browser.Document
 
     # if it's set, find control based on mpath
-    if ($mpath -and ![string]::IsNullOrWhiteSpace($name))
+    if ($MPath -and ![string]::IsNullOrWhiteSpace($Name))
     {
-        $control = Resolve-MPath $session $name
+        $control = Resolve-MPath -Session $Session -MPath $Name
 
         # throw error if can't find control
-        if ((Test-ControlNull $control) -and !$noThrow)
-        {
-            throw "Cannot find any element based on the MPath supplied: $name"
+        if ((Test-ControlNull $Control) -and !$NoThrow) {
+            throw "Cannot find any element based on the MPath supplied: $Name"
         }
 
         return $control
     }
 
     # if they're set, retrieve control by tag/attribute value combo
-    if (![string]::IsNullOrWhiteSpace($tagName) -and ![string]::IsNullOrWhiteSpace($attributeName))
+    if (![string]::IsNullOrWhiteSpace($TagName) -and ![string]::IsNullOrWhiteSpace($AttributeName))
     {
-        Write-MonocleInfo "Finding control with tag <$tagName>, attribute '$attributeName' and value '$name'" $session
+        Write-MonocleInfo "Finding control with tag <$TagName>, attribute '$AttributeName' and value '$Name'" $Session
 
-        $control = $document.getElementsByTagName($tagName) |
-            Where-Object { $_.getAttribute($attributeName) -imatch $name } |
+        $control = $document.getElementsByTagName($TagName) |
+            Where-Object { $_.getAttribute($AttributeName) -imatch $Name } |
             Select-Object -First 1
 
         # throw error if can't find control
-        if ((Test-ControlNull $control) -and !$noThrow)
-        {
-            throw "Element <$tagName> with attribute '$attributeName' value of $name not found."
+        if ((Test-ControlNull $control) -and !$NoThrow) {
+            throw "Element <$TagName> with attribute '$AttributeName' value of $Name not found."
         }
 
         return $control
     }
 
     # if they're set, retrieve the control by tag/value combo (value then innerHTML)
-    if (![string]::IsNullOrWhiteSpace($tagName) -and $findByValue)
+    if (![string]::IsNullOrWhiteSpace($TagName) -and $FindByValue)
     {
-        Write-MonocleInfo "Finding control with tag <$tagName>, and value '$name'" $session
+        Write-MonocleInfo "Finding control with tag <$TagName>, and value '$Name'" $Session
 
-        $controls = $document.getElementsByTagName($tagName)
+        $controls = $document.getElementsByTagName($TagName)
 
         $control = $controls |
-            Where-Object { $_.value -ieq $name }
+            Where-Object { $_.value -ieq $Name }
             Select-Object -First 1
         
-        if (Test-ControlNull $control)
-        {
+        if (Test-ControlNull $control) {
             $control = $controls |
-                Where-Object { $_.innerHTML -ieq $name }
+                Where-Object { $_.innerHTML -ieq $Name }
                 Select-Object -First 1
         }
         
         # throw error if can't find control
-        if ((Test-ControlNull $control) -and !$noThrow)
-        {
-            throw "Element <$tagName> with value of $name not found."
+        if ((Test-ControlNull $control) -and !$noThrow) {
+            throw "Element <$TagName> with value of $Name not found."
         }
 
         return $control
     }
 
     # if no tag/attr combo, attempt to retrieve by ID
-    Write-MonocleInfo "Finding control with identifier '$name'" $session
-    $control = $document.getElementById($name)
+    Write-MonocleInfo "Finding control with identifier '$Name'" $Session
+    $control = $document.getElementById($Name)
 
     # if no control by ID, try by first named control
-    if (Test-ControlNull $control)
-    {
-        Write-MonocleInfo "Finding control with name '$name'" $session
-        $control = $document.getElementsByName($name) | Select-Object -First 1
+    if (Test-ControlNull $control) {
+        Write-MonocleInfo "Finding control with name '$Name'" $Session
+        $control = $document.getElementsByName($Name) | Select-Object -First 1
     }
 
     # throw error if can't find control
-    if ((Test-ControlNull $control) -and !$noThrow)
-    {
-        throw "Element with ID/Name of $name not found."
+    if ((Test-ControlNull $control) -and !$NoThrow) {
+        throw "Element with ID/Name of $Name not found."
     }
 
     return $control
@@ -113,22 +116,24 @@ function Get-Control
 function Get-ControlValue
 {
     param (
-        $control,
-        [switch] $useInnerHtml
+        [Parameter()]
+        $Control,
+
+        [switch]
+        $UseInnerHtml
     )
 
     # get the value of the control, if it's a select control, get the appropriate
     # option where option is selected
-    if ($control.Length -gt 1 -and $control[0].tagName -ieq 'option')
+    if ($Control.Length -gt 1 -and $Control[0].tagName -ieq 'option')
     {
-        return ($control | Where-Object { $_.Selected -eq $true }).innerHTML
+        return ($Control | Where-Object { $_.Selected -eq $true }).innerHTML
     }
 
     # if not a select control, then return either the innerHTML or value
-    if ($useInnerHtml)
-    {
-        return $control.innerHTML
+    if ($UseInnerHtml) {
+        return $Control.innerHTML
     }
 
-    return $control.value
+    return $Control.value
 }
