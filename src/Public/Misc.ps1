@@ -1,3 +1,36 @@
+function SleepBrowser
+{
+    param (
+        [Parameter(Mandatory=$true)]
+        [ValidateNotNull()]
+        [int] $Seconds
+    )
+
+    # Attempt to retrieve this session
+    Test-MonocleSession
+    
+    Write-MonocleHost "Sleeping for $Seconds second(s)" $MonocleIESession
+    Start-Sleep -Seconds $Seconds
+}
+
+function Screenshot
+{
+    param (
+        [Parameter(Mandatory=$true)]
+        [ValidateNotNull()]
+        [string] $Name,
+
+        [Parameter(Mandatory=$false)]
+        [string] $Path
+    )
+
+    # Attempt to retrieve this session
+    Test-MonocleSession
+
+    Invoke-Screenshot $MonocleIESession $Name $Path
+    Start-SleepWhileBusy $MonocleIESession
+}
+
 function DownloadImage
 {
     param (

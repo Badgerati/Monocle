@@ -1,11 +1,14 @@
 # Monocle
-Monocle is a PowerShell Web Automation module, made to make automating websites easier.
 
-# Install
-To install the Monocle module globally, so you can `Import-Module Monocle`, then run the `install.ps1` script from an PowerShell console with admin priviledges.
+Monocle is a PowerShell Web Automation module, made to make automating and testing websites easier.
 
-# Example
-```PowerShell
+## Install
+
+To install the Monocle module globally, so you can `Import-Module Monocle`, then run the `install.ps1` script from an PowerShell console with admin privileges.
+
+## Example
+
+```powershell
 # if you didn't install globally, then import like so:
 $root = Split-Path -Path (Split-Path -Path $MyInvocation.MyCommand.Path)
 Import-Module "$root\Monocle.psm1" -DisableNameChecking -ErrorAction Stop
@@ -39,40 +42,43 @@ InMonocleSession 'Load YouTube' {
 
     # Again, we expect the URL to be loaded
     ExpectUrl 'https://www.youtube.com/watch?v=SI6Yyr-iI6M'
-    
+
 } -Visible -ScreenshotOnFail
 ```
 
-# Documentation
-## Functions
+## Documentation
+
+### Functions
+
 The following is a list of available functions in Monocle. These can be used, after calling `Import-Module Monocle`.
 
- * CheckElement
- * ClickElement
- * DownloadImage
- * ExpectElement
- * ExpectUrl
- * ExpectValue
- * GetElementValue
- * InMonocleSession
- * ModifyUrl
- * NavigateTo
- * Screenshot
- * SetElementValue
- * SleepBrowser
+* CheckElement
+* ClickElement
+* DownloadImage
+* ExpectElement
+* ExpectUrl
+* ExpectValue
+* GetElementValue
+* InMonocleSession
+* ModifyUrl
+* NavigateTo
+* Screenshot
+* SetElementValue
+* SleepBrowser
 
 The following is a list of assertions available in Monocle:
 
- * Assert-BodyValue
- * Assert-ElementValue
+* Assert-BodyValue
+* Assert-ElementValue
 
-## MPath
+### MPath
+
 MPath, or Monocle Path, is very similar to XPath and allows you to pin-point elements more easily.
 You find elements initially by tag, and then optionally by zero-based index or attribute.
 
 For example, take the following HTML:
 
-```HTML
+```html
 <html>
     <head>
         <title>Example</title>
@@ -90,9 +96,9 @@ For example, take the following HTML:
 
 Here we have a very basic form with 3 textual inputs and a submit button.
 
-Let's say we want to update the value of the first textual input, the one witn a ID of `SomeInput`. The MPath to select this element would be:
+Let's say we want to update the value of the first textual input, the one with an ID of `SomeInput`. The MPath to select this element would be:
 
-```
+```plain
 form/input[@id=SomeInput]
 ```
 
@@ -101,7 +107,7 @@ Splitting down on the above MPath, Monocle will first find all `form` elements o
 
 We can also simplify the above MPath to merely just:
 
-```
+```plain
 input[@id=SomeInput]
 ```
 
@@ -109,7 +115,7 @@ Since Monocle only interacts with single elements, then once all queries have ru
 
 Let's now say we only want to update the value of the third textual input. Well, this one doesn't have an identifiers, so the MPath looks as follows:
 
-```
+```plain
 form/input[2]
 ```
 
@@ -118,16 +124,17 @@ If we just left the above as `form/input` then the input with ID of SomeInput wi
 
 A more complex way of selecting the third input will be as follows:
 
-```
+```plain
 form/input[@data-type=test][1]
 ```
 
 Now, we will select the two inputs that have their `data-type` set to `test`, and then we will select the second of these inputs.
 
-# FAQ
- * I keep receiving the error:
-   
-   ```
+## FAQ
+
+* I keep receiving the error:
+
+   ```plain
    Creating an instance of the COM component with CLSID {0002DF01-0000-0000-C000-000000000046} from the IClassFactory 
    failed due to the following error: 800704a6 A system shutdown has already been scheduled. (Exception from HRESULT: 0x800704A6).
    ```

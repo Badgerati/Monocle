@@ -1,3 +1,43 @@
+function NavigateTo
+{
+    param (
+        [Parameter(Mandatory=$true)]
+        [ValidateNotNull()]
+        [string] $Url
+    )
+
+    # Attempt to retrieve this session
+    Test-MonocleSession
+    
+    # Test the URL first, ensure it exists
+    $code = Test-Url $Url
+
+    # Browse to the URL and wait till it loads
+    Write-MonocleHost "Navigating to: $url (Status: $code)" $MonocleIESession
+    $MonocleIESession.Browser.Navigate($Url)
+    Start-SleepWhileBusy $MonocleIESession
+}
+
+function ModifyUrl
+{
+    param (
+        [Parameter(Mandatory=$true)]
+        [ValidateNotNull()]
+        [string] $FindValue,
+
+        [Parameter(Mandatory=$true)]
+        [ValidateNotNull()]
+        [string] $ReplaceValue
+    )
+
+    # Attempt to retrieve this session
+    Test-MonocleSession
+
+    $Url = $MonocleIESession.Browser.LocationURL -ireplace $FindValue, $ReplaceValue
+    $MonocleIESession.Browser.Navigate($Url)
+    Start-SleepWhileBusy $MonocleIESession
+}
+
 function ExpectUrl
 {
     param (
