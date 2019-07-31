@@ -58,7 +58,7 @@ function Get-Control
     {
         Write-MonocleInfo "Finding control with tag <$TagName>, attribute '$AttributeName' and value '$Name'" $Session
 
-        $control = $document.getElementsByTagName($TagName) |
+        $control = $document.IHTMLDocument3_getElementsByTagName($TagName) |
             Where-Object { $_.getAttribute($AttributeName) -imatch $Name } |
             Select-Object -First 1
 
@@ -75,7 +75,7 @@ function Get-Control
     {
         Write-MonocleInfo "Finding control with tag <$TagName>, and value '$Name'" $Session
 
-        $controls = $document.getElementsByTagName($TagName)
+        $controls = $document.IHTMLDocument3_getElementsByTagName($TagName)
 
         $control = $controls |
             Where-Object { $_.value -ieq $Name }
@@ -97,12 +97,12 @@ function Get-Control
 
     # if no tag/attr combo, attempt to retrieve by ID
     Write-MonocleInfo "Finding control with identifier '$Name'" $Session
-    $control = $document.getElementById($Name)
+    $control = $document.IHTMLDocument3_getElementById($Name)
 
     # if no control by ID, try by first named control
     if (Test-ControlNull $control) {
         Write-MonocleInfo "Finding control with name '$Name'" $Session
-        $control = $document.getElementsByName($Name) | Select-Object -First 1
+        $control = $document.IHTMLDocument3_getElementsByName($Name) | Select-Object -First 1
     }
 
     # throw error if can't find control

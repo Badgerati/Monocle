@@ -23,10 +23,10 @@ function Resolve-MPathExpression
         
         # find initial controls based on the tag from document or previously found controls
         if ($null -ne $Document) {
-            $foundControls = $Document.getElementsByTagName($tag)
+            $foundControls = $Document.IHTMLDocument3_getElementsByTagName($tag)
         }
         else {
-            $foundControls = ($Controls | ForEach-Object { $_.getElementsByTagName($tag) })
+            $foundControls = ($Controls | ForEach-Object { $_.IHTMLDocument3_getElementsByTagName($tag) })
         }
 
         # if there's a filter, then filter down the found controls above
