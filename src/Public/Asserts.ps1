@@ -1,9 +1,8 @@
-function Assert-BodyValue
+function Assert-MonocleBodyValue
 {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory=$true)]
-        [ValidateNotNull()]
         [string]
         $ExpectedValue,
 
@@ -11,10 +10,7 @@ function Assert-BodyValue
         $Not
     )
 
-    # Attempt to retrieve this session
-    Test-MonocleSession
-
-    $body = $MonocleIESession.Browser.Document.body.outerHTML
+    $body = $Browser.Document.body.outerHTML
 
     if ($Not) {
         if ($body -imatch $ExpectedValue) {
@@ -28,17 +24,15 @@ function Assert-BodyValue
     }
 }
 
-function Assert-ElementValue
+function Assert-MonocleElementValue
 {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory=$true)]
-        [ValidateNotNull()]
         [string]
         $ElementName,
 
         [Parameter(Mandatory=$true)]
-        [ValidateNotNull()]
         [string]
         $ExpectedValue,
 
@@ -57,17 +51,14 @@ function Assert-ElementValue
         $MPath
     )
 
-    # Attempt to retrieve this session
-    Test-MonocleSession
-    
-    $control = Get-Control $MonocleIESession $ElementName -TagName $TagName -AttributeName $AttributeName -FindByValue:$FindByValue -MPath:$MPath
-    $value = Get-ControlValue $control
+    $element = Get-MonocleElement -Name $ElementName -TagName $TagName -AttributeName $AttributeName -FindByValue:$FindByValue -MPath:$MPath
+    $value = Get-MonocleElementValue -Element $element
 
     if ($value -ine $ExpectedValue)
     {
-        $innerHtml = Get-ControlValue $control -UseInnerHtml
+        $innerHtml = Get-MonocleElementValue -Element $element -UseInnerHtml
         if ($innerHtml -ine $ExpectedValue) {
-            throw "Control's value is not valid.`nExpected: $($ExpectedValue)`nBut got Value: $($value)`nand InnerHTML: $($innerHtml)"
+            throw "Element's value is not valid.`nExpected: $($ExpectedValue)`nBut got Value: $($value)`nand InnerHTML: $($innerHtml)"
         }
     }
 }

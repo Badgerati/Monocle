@@ -1,14 +1,12 @@
-function SetElementValue
+function Set-MonocleElementValue
 {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory=$true)]
-        [ValidateNotNull()]
         [string]
         $ElementName,
 
         [Parameter(Mandatory=$true)]
-        [ValidateNotNull()]
         [string]
         $Value,
 
@@ -24,33 +22,37 @@ function SetElementValue
         $FindByValue,
 
         [switch]
-        $MPath
+        $MPath,
+
+        [switch]
+        $Mask
     )
 
-    # Attempt to retrieve this session
-    Test-MonocleSession
-
-    Write-MonocleHost "Setting element: $ElementName to value: '$Value'" $MonocleIESession
-
-    # Attempt to retrieve an appropriate control
-    $control = Get-Control $MonocleIESession $ElementName -TagName $TagName -AttributeName $AttributeName -FindByValue:$FindByValue -MPath:$MPath
-
-    # Set the value of the control, if it's a select control, set the appropriate
-    # option with value to be selected
-    if ($control.Length -gt 1 -and $control[0].tagName -ieq 'option') {
-        ($control | Where-Object { $_.innerHTML -ieq $Value }).Selected = $true
+    if ($Mask) {
+        Write-MonocleHost -Message "Setting element: $ElementName to value: '********'"
     }
     else {
-        $control.value = $Value
+        Write-MonocleHost -Message "Setting element: $ElementName to value: '$Value'"
+    }
+
+    # Attempt to retrieve an appropriate element
+    $element = Get-MonocleElement -Name $ElementName -TagName $TagName -AttributeName $AttributeName -FindByValue:$FindByValue -MPath:$MPath
+
+    # Set the value of the element, if it's a select element, set the appropriate
+    # option with value to be selected
+    if ($element.Length -gt 1 -and $element[0].tagName -ieq 'option') {
+        ($element | Where-Object { $_.innerHTML -ieq $Value }).Selected = $true
+    }
+    else {
+        $element.value = $Value
     }
 }
 
-function GetElementValue
+function Get-MonocleElementValue
 {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory=$true)]
-        [ValidateNotNull()]
         [string]
         $ElementName,
 
@@ -72,53 +74,79 @@ function GetElementValue
         $MPath
     )
 
-    # Attempt to retrieve this session
-    Test-MonocleSession
+    $element = Get-MonocleElement -Name $ElementName -TagName $TagName -AttributeName $AttributeName -FindByValue:$FindByValue -MPath:$MPath
 
-    $control = Get-Control $MonocleIESession $ElementName -TagName $TagName -AttributeName $AttributeName -FindByValue:$FindByValue -MPath:$MPath
-    return Get-ControlValue $control -UseInnerHtml:$UseInnerHtml
+    # get the value of the element, if it's a select element, get the appropriate option where option is selected
+    if (($element.Length -gt 1) -and ($element[0].tagName -ieq 'option'))
+    {
+        return ($element | Where-Object { $_.Selected -eq $true }).innerHTML
+    }
+
+    # if not a select element, then return either the innerHTML or value
+    if ($UseInnerHtml) {
+        return $element.innerHTML
+    }
+
+    return $element.value
 }
 
-function ExpectValue
+function Wait-MonocleValue
 {
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName='Value')]
     param (
-        [Parameter(Mandatory=$true)]
-        [ValidateNotNull()]
+        [Parameter(Mandatory=$true, ParameterSetName='Value')]
         [string]
         $Value,
+
+        [Parameter(Mandatory=$true, ParameterSetName='Pattern')]
+        [string]
+        $Pattern,
 
         [Parameter()]
         [int]
         $AttemptCount = 10
     )
 
-    # Attempt to retrieve this session
-    Test-MonocleSession
-
     $count = 0
-    
-    Write-MonocleHost "Waiting for value: $Value" $MonocleIESession
 
-    while ($MonocleIESession.Browser.Document.body.outerHTML -inotmatch $Value)
+    switch ($PSCmdlet.ParameterSetName.ToLowerInvariant())
     {
-        if ($count -ge $AttemptCount) {
-            throw "Expected value: $($Value)`nBut found nothing`nOn: $($MonocleIESession.Browser.LocationURL)"
+        'pattern' {
+            Write-MonocleHost -Message "Waiting for value to match pattern: $Pattern"
+
+            while ($Browser.Document.body.outerHTML -inotmatch $Pattern) {
+                if ($count -ge $AttemptCount) {
+                    throw "Expected value to match pattern: $($Pattern)`nBut found nothing`nOn: $($Browser.LocationURL)"
+                }
+
+                $count++
+                Start-Sleep -Seconds 1
+            }
         }
-        
-        $count++
-        Start-Sleep -Seconds 1
+
+        'value' {
+            Write-MonocleHost -Message "Waiting for value: $Value"
+
+            while ($Browser.Document.body.outerHTML -ine $Value) {
+                if ($count -ge $AttemptCount) {
+                    throw "Expected value: $($Value)`nBut found nothing`nOn: $($Browser.LocationURL)"
+                }
+
+                $count++
+                Start-Sleep -Seconds 1
+            }
+        }
     }
 
-    Write-MonocleHost "Expected value loaded after $count second(s)" $MonocleIESession
+    Write-MonocleHost -Message "Expected value loaded after $count second(s)"
+    Start-MonocleSleepWhileBusy
 }
 
-function ExpectElement
+function Wait-MonocleElement
 {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory=$true)]
-        [ValidateNotNull()]
         [string]
         $ElementName,
 
@@ -141,35 +169,30 @@ function ExpectElement
         $MPath
     )
 
-    # Attempt to retrieve this session
-    Test-MonocleSession
-
     $count = 0
-    $control = [System.DBNull]::Value
+    $element = [System.DBNull]::Value
 
-    Write-MonocleHost "Waiting for element: $ElementName" $MonocleIESession
+    Write-MonocleHost -Message "Waiting for element: $ElementName"
 
-    while (Test-ControlNull $control)
-    {
+    while (Test-MonocleElementNull -Element $element) {
         if ($count -ge $AttemptCount) {
-            throw "Expected element: $($ElementName)`nBut found nothing`nOn: $($MonocleIESession.Browser.LocationURL)"
+            throw "Expected element: $($ElementName)`nBut found nothing`nOn: $($Browser.LocationURL)"
         }
 
-        $control = Get-Control $MonocleIESession $ElementName -TagName $TagName -AttributeName $AttributeName -FindByValue:$FindByValue -MPath:$MPath -NoThrow
+        $element = Get-MonocleElement -Name $ElementName -TagName $TagName -AttributeName $AttributeName -FindByValue:$FindByValue -MPath:$MPath -NoThrow
         
         $count++
         Start-Sleep -Seconds 1
     }
 
-    Write-MonocleHost "Expected element loaded after $count second(s)" $MonocleIESession
+    Write-MonocleHost -Message "Expected element loaded after $count second(s)"
 }
 
-function ClickElement
+function Invoke-MonocleElementClick
 {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory=$true)]
-        [ValidateNotNull()]
         [string]
         $ElementName,
 
@@ -188,23 +211,19 @@ function ClickElement
         $MPath
     )
 
-    # Attempt to retrieve this session
-    Test-MonocleSession
+    Write-MonocleHost -Message "Clicking element: $ElementName"
 
-    Write-MonocleHost "Clicking element: $ElementName" $MonocleIESession
+    $element = Get-MonocleElement -Name $ElementName -TagName $TagName -AttributeName $AttributeName -FindByValue:$FindByValue -MPath:$MPath
+    $element.click()
 
-    $control = Get-Control $MonocleIESession $ElementName -TagName $TagName -AttributeName $AttributeName -FindByValue:$FindByValue -MPath:$MPath
-    $control.click()
-
-    Start-SleepWhileBusy $MonocleIESession
+    Start-MonocleSleepWhileBusy
 }
 
-function CheckElement
+function Invoke-MonocleElementCheck
 {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory=$true)]
-        [ValidateNotNull()]
         [string]
         $ElementName,
 
@@ -226,19 +245,18 @@ function CheckElement
         $MPath
     )
 
-    # Attempt to retrieve this session
-    Test-MonocleSession
-
     if ($Uncheck) {
-        Write-MonocleHost "Unchecking element: $ElementName" $MonocleIESession
+        Write-MonocleHost -Message "Unchecking element: $ElementName"
     }
     else {
-        Write-MonocleHost "Checking element: $ElementName" $MonocleIESession
+        Write-MonocleHost -Message "Checking element: $ElementName"
     }
 
-    # Attempt to retrieve an appropriate control
-    $control = Get-Control $MonocleIESession $ElementName -TagName $TagName -AttributeName $AttributeName -FindByValue:$FindByValue -MPath:$MPath
-    
+    # Attempt to retrieve an appropriate element
+    $element = Get-MonocleElement -Name $ElementName -TagName $TagName -AttributeName $AttributeName -FindByValue:$FindByValue -MPath:$MPath
+
     # Attempt to toggle the check value
-    $control.Checked = !$Uncheck
+    $element.Checked = !$Uncheck
+
+    Start-MonocleSleepWhileBusy
 }

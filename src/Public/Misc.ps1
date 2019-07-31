@@ -1,54 +1,68 @@
-function SleepBrowser
+function Start-MonocleSleep
 {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory=$true)]
-        [ValidateNotNull()]
         [int]
         $Seconds
     )
 
-    # Attempt to retrieve this session
-    Test-MonocleSession
-
-    Write-MonocleHost "Sleeping for $Seconds second(s)" $MonocleIESession
+    Write-MonocleHost -Message "Sleeping for $Seconds second(s)"
     Start-Sleep -Seconds $Seconds
 }
 
-function Screenshot
+function Invoke-MonocoleScreenshot
 {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory=$true)]
-        [ValidateNotNull()]
         [string]
         $Name,
 
-        [Parameter()]
         [string]
         $Path
     )
 
-    # Attempt to retrieve this session
-    Test-MonocleSession
+    $initialVisibleState = $Browser.Visible
 
-    Invoke-Screenshot $MonocleIESession $Name $Path
-    Start-SleepWhileBusy $MonocleIESession
+    $Browser.Visible = $true
+    $Browser.TheaterMode = $true
+
+    Set-MonocleBrowserFocus
+    Start-MonocleSleepWhileBusy
+
+    if ([string]::IsNullOrWhiteSpace($Path)) {
+        $Path = $pwd
+    }
+
+    $Name = ($Name -replace ' ', '_')
+    $filepath = Join-Path $Path "$($Name).png"
+
+    Add-Type -AssemblyName System.Drawing
+
+    $bitmap = New-Object System.Drawing.Bitmap $Browser.Width, $Browser.Height
+    $graphic = [System.Drawing.Graphics]::FromImage($bitmap)
+    $graphic.CopyFromScreen($Browser.Left, $Browser.Top, 0, 0, $bitmap.Size)
+    $bitmap.Save($filepath)
+
+    $Browser.TheaterMode = $false
+    $Browser.Visible = $initialVisibleState
+
+    Write-MonocleHost -Message "Screenshot saved to: $filepath"
+    Start-MonocleSleepWhileBusy
 }
 
-function DownloadImage
+function Save-MonocleImage
 {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory=$true)]
-        [ValidateNotNull()]
         [string]
         $ElementName,
 
         [Parameter(Mandatory=$true)]
-        [ValidateNotNull()]
         [string]
-        $OutFile,
+        $Path,
 
         [Parameter()]
         [string]
@@ -65,21 +79,29 @@ function DownloadImage
         $MPath
     )
 
-    # attemp to retrieve this session
-    Test-MonocleSession
+    Write-MonocleHost -Message "Downloading image from $ElementName"
 
-    Write-MonocleHost "Downloading image from $ElementName" $MonocleIESession
+    $element = Get-MonocleElement -Name $ElementName -TagName $TagName -AttributeName $AttributeName -FindByValue:$FindByValue -MPath:$MPath
 
-    $control = Get-Control $MonocleIESession $ElementName -TagName $TagName -AttributeName $AttributeName -FindByValue:$FindByValue -MPath:$MPath
-
-    $tag = $control.tagName
+    $tag = $element.tagName
     if (($tag -ine 'img') -and ($tag -ine 'image')) {
         throw "Element $ElementName is not an image element: $tag"
     }
 
-    if ([string]::IsNullOrWhiteSpace($control.src)) {
+    if ([string]::IsNullOrWhiteSpace($element.src)) {
         throw "Element $ElementName has no src attribute"
     }
 
-    Invoke-DownloadImage $MonocleIESession $control.src $OutFile
+    Invoke-MonocleDownloadImage -Source $element.src -Path $Path
+}
+
+function Restart-MonocleBrowser
+{
+    [CmdletBinding()]
+    param ()
+
+    Write-MonocleHost -Message "Refreshing the Browser"
+    $Browser.Refresh()
+    Start-MonocleSleepWhileBusy
+    Start-Sleep -Seconds 2
 }

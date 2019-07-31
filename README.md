@@ -4,7 +4,10 @@ Monocle is a PowerShell Web Automation module, made to make automating and testi
 
 ## Install
 
-To install the Monocle module globally, so you can `Import-Module Monocle`, then run the `install.ps1` script from an PowerShell console with admin privileges.
+```powershell
+Install-Module -Name Monocle
+Import-Module -Name Monocle
+```
 
 ## Example
 
@@ -16,32 +19,33 @@ Import-Module "$root\Monocle.psm1" -DisableNameChecking -ErrorAction Stop
 # if you did import globally:
 Import-Module Monocle
 
-# Monocle runs commands in web sessions, for easy disposal and test tracking
-# Each session needs a name
-InMonocleSession 'Load YouTube' {
-    # Tell the session which URL to navigate to, will sleep while page is loading
-    NavigateTo 'https://www.youtube.com'
+# Monocle runs commands in web flows, for easy disposal and test tracking
+# Each browser needs a name
+Start-MonocleFlow -Name 'Load YouTube' -ScriptBlock {
+
+    # Tell the browser which URL to navigate to, will sleep while page is loading
+    Set-MonocleUrl -Url 'https://www.youtube.com'
 
     # Sets the search bar element to the passed value to query
-    SetElementValue 'search_query' 'Beerus Madness (Extended)'
+    Set-MonocleElementValue -ElementName 'search_query' -Value 'Beerus Madness (Extended)'
 
-    # Tells the session to click the search button
-    ClickElement 'search-btn'
+    # Tells the browser to click the search button
+    Invoke-MonocleElementClick -ElementName 'search-btn'
 
     # Though all commands sleep when the page is busy, some buttons use javascript
-    # to reform the page. The following will sleep the session until the passed URL is loaded.
-    # If (default) 10 seconds passes and no URL, then the session fails
-    ExpectUrl -StartsWith 'https://www.youtube.com/results?search_query='
+    # to reform the page. The following will sleep the browser until the passed URL is loaded.
+    # If (default) 10 seconds passes and no URL, then the flow fails
+    Wait-MonocleUrl -Url 'https://www.youtube.com/results?search_query=' -StartsWith
 
     # Downloads an image from the page. This time it's using something called MPath (Monocle Path).
     # It's very similar to XPath, and allows you to pin-point elements more easily
-    DownloadImage -MPath 'div[@data-context-item-id=SI6Yyr-iI6M]/img[0]' '.\beerus.jpg'
+    Save-MonocleImage -MPath 'div[@data-context-item-id=SI6Yyr-iI6M]/img[0]' -Path '.\beerus.jpg'
 
-    # Tells the session to click the video in the results. The video link is found via MPath
-    ClickElement -MPath 'a[@title=Dragon Ball Super Soundtrack - Beerus Madness (Extended)  - Duration: 10:00.]'
+    # Tells the browser to click the video in the results. The video link is found via MPath
+    Invoke-MonocleElementClick -MPath -ElementName 'a[@title=Dragon Ball Super Soundtrack - Beerus Madness (Extended)  - Duration: 10:00.]'
 
     # Again, we expect the URL to be loaded
-    ExpectUrl 'https://www.youtube.com/watch?v=SI6Yyr-iI6M'
+    Wait-MonocleUrl -Url 'https://www.youtube.com/watch?v=SI6Yyr-iI6M'
 
 } -Visible -ScreenshotOnFail
 ```
@@ -50,26 +54,28 @@ InMonocleSession 'Load YouTube' {
 
 ### Functions
 
-The following is a list of available functions in Monocle. These can be used, after calling `Import-Module Monocle`.
+The following is a list of available functions in Monocle. These can be used, after calling `Import-Module -Name Monocle`.
 
-* CheckElement
-* ClickElement
-* DownloadImage
-* ExpectElement
-* ExpectUrl
-* ExpectValue
-* GetElementValue
-* InMonocleSession
-* ModifyUrl
-* NavigateTo
-* Screenshot
-* SetElementValue
-* SleepBrowser
+* Invoke-MonocleElementCheck
+* Invoke-MonocleElementClick
+* Save-MonocleImage
+* Wait-MonocleElement
+* Wait-MonocleUrl
+* Wait-MonocleValue
+* Get-MonocleElementValue
+* Start-MonocleFlow
+* Edit-MonocleUrl
+* Set-MonocleUrl
+* Invoke-MonocoleScreenshot
+* Set-MonocleElementValue
+* Start-MonocleSleep
+* Restart-MonocleBrowser
+* Get-MonocleUrl
 
 The following is a list of assertions available in Monocle:
 
-* Assert-BodyValue
-* Assert-ElementValue
+* Assert-MonocleBodyValue
+* Assert-MonocleElementValue
 
 ### MPath
 
