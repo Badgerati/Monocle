@@ -27,10 +27,10 @@ Start-MonocleFlow -Name 'Load YouTube' -ScriptBlock {
     Set-MonocleUrl -Url 'https://www.youtube.com'
 
     # Sets the search bar element to the passed value to query
-    Set-MonocleElementValue -ElementName 'search_query' -Value 'Beerus Madness (Extended)'
+    Set-MonocleElementValue -Id 'search_query' -Value 'Beerus Madness (Extended)'
 
     # Tells the browser to click the search button
-    Invoke-MonocleElementClick -ElementName 'search-btn'
+    Invoke-MonocleElementClick -Id 'search-btn'
 
     # Though all commands sleep when the page is busy, some buttons use javascript
     # to reform the page. The following will sleep the browser until the passed URL is loaded.
@@ -42,7 +42,7 @@ Start-MonocleFlow -Name 'Load YouTube' -ScriptBlock {
     Save-MonocleImage -MPath 'div[@data-context-item-id=SI6Yyr-iI6M]/img[0]' -Path '.\beerus.jpg'
 
     # Tells the browser to click the video in the results. The video link is found via MPath
-    Invoke-MonocleElementClick -MPath -ElementName 'a[@title=Dragon Ball Super Soundtrack - Beerus Madness (Extended)  - Duration: 10:00.]'
+    Invoke-MonocleElementClick -MPath 'a[@title=Dragon Ball Super Soundtrack - Beerus Madness (Extended)  - Duration: 10:00.]'
 
     # Again, we expect the URL to be loaded
     Wait-MonocleUrl -Url 'https://www.youtube.com/watch?v=SI6Yyr-iI6M'
