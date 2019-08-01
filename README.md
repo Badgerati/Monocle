@@ -1,5 +1,8 @@
 # Monocle
 
+[![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/Badgerati/Monocle/master/LICENSE.txt)
+[![PowerShell](https://img.shields.io/powershellgallery/dt/monocle.svg?label=PowerShell&colorB=085298)](https://www.powershellgallery.com/packages/Monocle)
+
 Monocle is a PowerShell Web Automation module, made to make automating and testing websites easier.
 
 ## Install
