@@ -1,45 +1,57 @@
 function Set-MonocleElementValue
 {
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName='Id')]
     param (
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory=$true, ParameterSetName='Id')]
         [string]
-        $ElementName,
+        $Id,
 
         [Parameter(Mandatory=$true)]
         [string]
         $Value,
 
-        [Parameter()]
+        [Parameter(Mandatory=$true, ParameterSetName='Tag')]
         [string]
-        $TagName = $null,
+        $TagName,
 
-        [Parameter()]
+        [Parameter(ParameterSetName='Tag')]
         [string]
-        $AttributeName = $null,
+        $AttributeName,
 
-        [switch]
-        $FindByValue,
+        [Parameter(ParameterSetName='Tag')]
+        [string]
+        $AttributeValue,
 
-        [switch]
+        [Parameter(ParameterSetName='Tag')]
+        [string]
+        $ElementValue,
+
+        [Parameter(ParameterSetName='MPath')]
+        [string]
         $MPath,
 
         [switch]
         $Mask
     )
 
+    # Attempt to retrieve an appropriate element
+    $element = Get-MonocleElement `
+        -FilterType $PSCmdlet.ParameterSetName `
+        -Id $Id `
+        -TagName $TagName `
+        -AttributeName $AttributeName `
+        -AttributeValue $AttributeValue `
+        -ElementValue $ElementValue `
+        -MPath $MPath
+
     if ($Mask) {
-        Write-MonocleHost -Message "Setting element: $ElementName to value: '********'"
+        Write-MonocleHost -Message "Setting $($element.tagName) element value to: ********"
     }
     else {
-        Write-MonocleHost -Message "Setting element: $ElementName to value: '$Value'"
+        Write-MonocleHost -Message "Setting $($element.tagName) element value to: $Value"
     }
 
-    # Attempt to retrieve an appropriate element
-    $element = Get-MonocleElement -Name $ElementName -TagName $TagName -AttributeName $AttributeName -FindByValue:$FindByValue -MPath:$MPath
-
-    # Set the value of the element, if it's a select element, set the appropriate
-    # option with value to be selected
+    # Set the value of the element, if it's a select element, set the appropriate option with value to be selected
     if ($element.Length -gt 1 -and $element[0].tagName -ieq 'option') {
         ($element | Where-Object { $_.innerHTML -ieq $Value }).Selected = $true
     }
@@ -50,35 +62,47 @@ function Set-MonocleElementValue
 
 function Get-MonocleElementValue
 {
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName='Id')]
     param (
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory=$true, ParameterSetName='Id')]
         [string]
-        $ElementName,
+        $Id,
 
-        [Parameter()]
+        [Parameter(Mandatory=$true, ParameterSetName='Tag')]
         [string]
         $TagName,
 
-        [Parameter()]
+        [Parameter(ParameterSetName='Tag')]
         [string]
         $AttributeName,
 
-        [switch]
-        $UseInnerHtml,
+        [Parameter(ParameterSetName='Tag')]
+        [string]
+        $AttributeValue,
+
+        [Parameter(ParameterSetName='Tag')]
+        [string]
+        $ElementValue,
+
+        [Parameter(ParameterSetName='MPath')]
+        [string]
+        $MPath,
 
         [switch]
-        $FindByValue,
-
-        [switch]
-        $MPath
+        $UseInnerHtml
     )
 
-    $element = Get-MonocleElement -Name $ElementName -TagName $TagName -AttributeName $AttributeName -FindByValue:$FindByValue -MPath:$MPath
+    $element = Get-MonocleElement `
+        -FilterType $PSCmdlet.ParameterSetName `
+        -Id $Id `
+        -TagName $TagName `
+        -AttributeName $AttributeName `
+        -AttributeValue $AttributeValue `
+        -ElementValue $ElementValue `
+        -MPath $MPath
 
     # get the value of the element, if it's a select element, get the appropriate option where option is selected
-    if (($element.Length -gt 1) -and ($element[0].tagName -ieq 'option'))
-    {
+    if (($element.Length -gt 1) -and ($element[0].tagName -ieq 'option')) {
         return ($element | Where-Object { $_.Selected -eq $true }).innerHTML
     }
 
@@ -144,29 +168,35 @@ function Wait-MonocleValue
 
 function Wait-MonocleElement
 {
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName='Id')]
     param (
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory=$true, ParameterSetName='Id')]
         [string]
-        $ElementName,
+        $Id,
 
-        [Parameter()]
+        [Parameter(Mandatory=$true, ParameterSetName='Tag')]
         [string]
         $TagName,
 
-        [Parameter()]
+        [Parameter(ParameterSetName='Tag')]
         [string]
         $AttributeName,
 
+        [Parameter(ParameterSetName='Tag')]
+        [string]
+        $AttributeValue,
+
+        [Parameter(ParameterSetName='Tag')]
+        [string]
+        $ElementValue,
+
+        [Parameter(ParameterSetName='MPath')]
+        [string]
+        $MPath,
+
         [Parameter()]
         [int]
-        $AttemptCount = 10,
-
-        [switch]
-        $FindByValue,
-
-        [switch]
-        $MPath
+        $AttemptCount = 10
     )
 
     $count = 0
@@ -179,8 +209,16 @@ function Wait-MonocleElement
             throw "Expected element: $($ElementName)`nBut found nothing`nOn: $($Browser.LocationURL)"
         }
 
-        $element = Get-MonocleElement -Name $ElementName -TagName $TagName -AttributeName $AttributeName -FindByValue:$FindByValue -MPath:$MPath -NoThrow
-        
+        $element = Get-MonocleElement `
+            -FilterType $PSCmdlet.ParameterSetName `
+            -Id $Id `
+            -TagName $TagName `
+            -AttributeName $AttributeName `
+            -AttributeValue $AttributeValue `
+            -ElementValue $ElementValue `
+            -MPath $MPath `
+            -NoThrow
+
         $count++
         Start-Sleep -Seconds 1
     }
@@ -190,30 +228,44 @@ function Wait-MonocleElement
 
 function Invoke-MonocleElementClick
 {
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName='Id')]
     param (
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory=$true, ParameterSetName='Id')]
         [string]
-        $ElementName,
+        $Id,
 
-        [Parameter()]
+        [Parameter(Mandatory=$true, ParameterSetName='Tag')]
         [string]
         $TagName,
 
-        [Parameter()]
+        [Parameter(ParameterSetName='Tag')]
         [string]
         $AttributeName,
 
-        [switch]
-        $FindByValue,
+        [Parameter(ParameterSetName='Tag')]
+        [string]
+        $AttributeValue,
 
-        [switch]
+        [Parameter(ParameterSetName='Tag')]
+        [string]
+        $ElementValue,
+
+        [Parameter(ParameterSetName='MPath')]
+        [string]
         $MPath
     )
 
     Write-MonocleHost -Message "Clicking element: $ElementName"
 
-    $element = Get-MonocleElement -Name $ElementName -TagName $TagName -AttributeName $AttributeName -FindByValue:$FindByValue -MPath:$MPath
+    $element = Get-MonocleElement `
+        -FilterType $PSCmdlet.ParameterSetName `
+        -Id $Id `
+        -TagName $TagName `
+        -AttributeName $AttributeName `
+        -AttributeValue $AttributeValue `
+        -ElementValue $ElementValue `
+        -MPath $MPath
+
     $element.click()
 
     Start-MonocleSleepWhileBusy
@@ -221,28 +273,34 @@ function Invoke-MonocleElementClick
 
 function Invoke-MonocleElementCheck
 {
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName='Id')]
     param (
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory=$true, ParameterSetName='Id')]
         [string]
-        $ElementName,
+        $Id,
 
-        [Parameter()]
+        [Parameter(Mandatory=$true, ParameterSetName='Tag')]
         [string]
         $TagName,
 
-        [Parameter()]
+        [Parameter(ParameterSetName='Tag')]
         [string]
         $AttributeName,
 
-        [switch]
-        $Uncheck,
+        [Parameter(ParameterSetName='Tag')]
+        [string]
+        $AttributeValue,
+
+        [Parameter(ParameterSetName='Tag')]
+        [string]
+        $ElementValue,
+
+        [Parameter(ParameterSetName='MPath')]
+        [string]
+        $MPath,
 
         [switch]
-        $FindByValue,
-
-        [switch]
-        $MPath
+        $Uncheck
     )
 
     if ($Uncheck) {
@@ -253,7 +311,14 @@ function Invoke-MonocleElementCheck
     }
 
     # Attempt to retrieve an appropriate element
-    $element = Get-MonocleElement -Name $ElementName -TagName $TagName -AttributeName $AttributeName -FindByValue:$FindByValue -MPath:$MPath
+    $element = Get-MonocleElement `
+        -FilterType $PSCmdlet.ParameterSetName `
+        -Id $Id `
+        -TagName $TagName `
+        -AttributeName $AttributeName `
+        -AttributeValue $AttributeValue `
+        -ElementValue $ElementValue `
+        -MPath $MPath
 
     # Attempt to toggle the check value
     $element.Checked = !$Uncheck
