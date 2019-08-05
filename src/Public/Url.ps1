@@ -92,7 +92,7 @@ function Wait-MonocleUrl
         'url' {
             Write-MonocleHost -Message "Waiting for URL: $Url"
 
-            while ((!$StartsWith -and $Browser.LocationURL -ine $Url) -or ($StartsWith -and !$Browser.LocationURL.StartsWith($Url))) {
+            while ((!$StartsWith -and $Browser.LocationURL -ine $Url) -or ($StartsWith -and !$Browser.LocationURL.StartsWith($Url, [StringComparison]::InvariantCultureIgnoreCase))) {
                 if ($count -ge $AttemptCount) {
                     throw "Expected URL: $($Url)`nBut got: $($Browser.LocationURL)"
                 }
