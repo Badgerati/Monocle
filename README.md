@@ -74,6 +74,7 @@ The following is a list of available functions in Monocle. These can be used, af
 * Start-MonocleSleep
 * Restart-MonocleBrowser
 * Get-MonocleUrl
+* Test-MonocleElement
 
 The following is a list of assertions available in Monocle:
 

@@ -25,7 +25,8 @@ function Set-MonocleUrl
 function Get-MonocleUrl
 {
     [CmdletBinding()]
-    param ()
+    [OutputType([string])]
+    param()
 
     return $Browser.LocationURL
 }
