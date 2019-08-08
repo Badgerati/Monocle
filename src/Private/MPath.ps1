@@ -26,7 +26,7 @@ function Resolve-MonocleMPathExpression
             $foundElements = $Document.IHTMLDocument3_getElementsByTagName($tag)
         }
         else {
-            $foundElements = ($Elements | ForEach-Object { $_.IHTMLDocument3_getElementsByTagName($tag) })
+            $foundElements = ($Elements | ForEach-Object { $_.getElementsByTagName($tag) })
         }
 
         # if there's a filter, then filter down the found elements above
@@ -85,7 +85,7 @@ function Resolve-MonocleMPathExpression
     }
 
     if (($foundElements | Measure-Object).Count -eq 0) {
-        throw "Failed to find elements for: $Expression"
+        return $null
     }
 
     return $foundElements
@@ -110,10 +110,16 @@ function Resolve-MonocleMPath
 
     # find initial elements based on the document and first expression
     $elements = Resolve-MonocleMPathExpression -Expression $exprs[0] -Document $Browser.Document
+    if (($elements | Measure-Object).Count -eq 0) {
+        return $null
+    }
 
     # find rest of elements from the previous elements found above
     for ($i = 1; $i -lt $exprs.length; $i++) {
         $elements = Resolve-MonocleMPathExpression -Expression $exprs[$i] -Elements $elements
+        if (($elements | Measure-Object).Count -eq 0) {
+            return $null
+        }
     }
 
     # Monocle only deals with single elements, so return the first
