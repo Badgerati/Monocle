@@ -63,6 +63,7 @@ function Set-MonocleElementValue
 function Get-MonocleElementValue
 {
     [CmdletBinding(DefaultParameterSetName='Id')]
+    [OutputType([string])]
     param (
         [Parameter(Mandatory=$true, ParameterSetName='Id')]
         [string]
@@ -112,6 +113,49 @@ function Get-MonocleElementValue
     }
 
     return $element.value
+}
+
+function Test-MonocleElement
+{
+    [CmdletBinding(DefaultParameterSetName='Id')]
+    [OutputType([bool])]
+    param (
+        [Parameter(Mandatory=$true, ParameterSetName='Id')]
+        [string]
+        $Id,
+
+        [Parameter(Mandatory=$true, ParameterSetName='Tag')]
+        [string]
+        $TagName,
+
+        [Parameter(ParameterSetName='Tag')]
+        [string]
+        $AttributeName,
+
+        [Parameter(ParameterSetName='Tag')]
+        [string]
+        $AttributeValue,
+
+        [Parameter(ParameterSetName='Tag')]
+        [string]
+        $ElementValue,
+
+        [Parameter(ParameterSetName='MPath')]
+        [string]
+        $MPath
+    )
+
+    $element = Get-MonocleElement `
+        -FilterType $PSCmdlet.ParameterSetName `
+        -Id $Id `
+        -TagName $TagName `
+        -AttributeName $AttributeName `
+        -AttributeValue $AttributeValue `
+        -ElementValue $ElementValue `
+        -MPath $MPath `
+        -NoThrow
+
+    return !(Test-MonocleElementNull -Element $element)
 }
 
 function Wait-MonocleValue
