@@ -94,7 +94,10 @@ function Get-MonocleElementById
         throw "Element with ID/Name of '$Id' not found"
     }
 
-    return $element
+    return @{
+        Element = $element
+        Id = "<$($Id)>"
+    }
 }
 
 function Get-MonocleElementByTagName
@@ -125,6 +128,7 @@ function Get-MonocleElementByTagName
 
     # get all elements for the tag
     $elements = $document.IHTMLDocument3_getElementsByTagName($TagName)
+    $id = $TagName.ToLowerInvariant()
 
     # if we have attribute info, attempt to get an element
     if ($PSCmdlet.ParameterSetName -ieq 'Attribute')
@@ -138,6 +142,8 @@ function Get-MonocleElementByTagName
         if ((Test-MonocleElementNull -Element ($elements | Select-Object -First 1)) -and !$NoThrow) {
             throw "Element <$TagName> with attribute '$AttributeName' and value of '$AttributeValue' not found"
         }
+
+        $id += "[$($AttributeName)=$($AttributeValue)]"
     }
 
     if (![string]::IsNullOrWhiteSpace($ElementValue))
@@ -158,12 +164,17 @@ function Get-MonocleElementByTagName
         if ((Test-MonocleElementNull -Element $element) -and !$noThrow) {
             throw "Element <$TagName> with value of '$ElementValue' not found"
         }
+
+        $id += "=$($ElementValue)"
     }
     else {
         $element = ($elements | Select-Object -First 1)
     }
 
-    return $element
+    return @{
+        Element = $element
+        Id = "<$($id)>"
+    }
 }
 
 function Get-MonocleElementByMPath
@@ -185,5 +196,8 @@ function Get-MonocleElementByMPath
         throw "Cannot find any element based on the MPath supplied: $MPath"
     }
 
-    return $element
+    return @{
+        Element = $element
+        Id = "<$($MPath)>"
+    }
 }

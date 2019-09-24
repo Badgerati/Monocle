@@ -28,35 +28,52 @@ function Assert-MonocleElementValue
 {
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory=$true, ParameterSetName='Id')]
         [string]
-        $ElementName,
+        $Id,
 
-        [Parameter(Mandatory=$true)]
-        [string]
-        $ExpectedValue,
-
-        [Parameter()]
+        [Parameter(Mandatory=$true, ParameterSetName='Tag')]
         [string]
         $TagName,
 
-        [Parameter()]
+        [Parameter(ParameterSetName='Tag')]
         [string]
         $AttributeName,
 
-        [switch]
-        $FindByValue,
+        [Parameter(ParameterSetName='Tag')]
+        [string]
+        $AttributeValue,
 
-        [switch]
+        [Parameter(ParameterSetName='Tag')]
+        [string]
+        $ElementValue,
+
+        [Parameter(ParameterSetName='MPath')]
+        [string]
         $MPath
     )
 
-    $element = Get-MonocleElement -Name $ElementName -TagName $TagName -AttributeName $AttributeName -FindByValue:$FindByValue -MPath:$MPath
-    $value = Get-MonocleElementValue -Element $element
+    $value = Get-MonocleElementValue `
+        -FilterType $PSCmdlet.ParameterSetName `
+        -Id $Id `
+        -TagName $TagName `
+        -AttributeName $AttributeName `
+        -AttributeValue $AttributeValue `
+        -ElementValue $ElementValue `
+        -MPath $MPath
 
     if ($value -ine $ExpectedValue)
     {
-        $innerHtml = Get-MonocleElementValue -Element $element -UseInnerHtml
+        $innerHtml = Get-MonocleElementValue `
+            -FilterType $PSCmdlet.ParameterSetName `
+            -Id $Id `
+            -TagName $TagName `
+            -AttributeName $AttributeName `
+            -AttributeValue $AttributeValue `
+            -ElementValue $ElementValue `
+            -MPath $MPath `
+            -UseInnerHtml
+
         if ($innerHtml -ine $ExpectedValue) {
             throw "Element's value is not valid.`nExpected: $($ExpectedValue)`nBut got Value: $($value)`nand InnerHTML: $($innerHtml)"
         }

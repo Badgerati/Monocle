@@ -50,6 +50,9 @@ function Write-MonocleHost
         $Message,
 
         [switch]
+        $Backdent,
+
+        [switch]
         $NoIndent
     )
 
@@ -57,7 +60,12 @@ function Write-MonocleHost
         Write-Host -Object $Message
     }
     else {
-        Write-Host -Object "-> $Message"
+        $Depth = [int]$env:MONOCLE_OUTPUT_DEPTH
+        if ($Backdent) {
+            $Depth--
+        }
+
+        Write-Host -Object "$('-' * $Depth)> $Message"
     }
 }
 
