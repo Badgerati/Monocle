@@ -50,6 +50,8 @@ function Invoke-MonocoleScreenshot
 
     Write-MonocleHost -Message "Screenshot saved to: $filepath"
     Start-MonocleSleepWhileBusy
+
+    return $filepath
 }
 
 function Save-MonocleImage
@@ -58,41 +60,54 @@ function Save-MonocleImage
     param (
         [Parameter(Mandatory=$true)]
         [string]
-        $ElementName,
-
-        [Parameter(Mandatory=$true)]
-        [string]
         $Path,
 
-        [Parameter()]
+        [Parameter(Mandatory=$true, ParameterSetName='Id')]
+        [string]
+        $Id,
+
+        [Parameter(Mandatory=$true, ParameterSetName='Tag')]
         [string]
         $TagName,
 
-        [Parameter()]
+        [Parameter(ParameterSetName='Tag')]
         [string]
         $AttributeName,
 
-        [switch]
-        $FindByValue,
+        [Parameter(ParameterSetName='Tag')]
+        [string]
+        $AttributeValue,
 
-        [switch]
+        [Parameter(ParameterSetName='Tag')]
+        [string]
+        $ElementValue,
+
+        [Parameter(ParameterSetName='MPath')]
+        [string]
         $MPath
     )
 
-    Write-MonocleHost -Message "Downloading image from $ElementName"
+    $result = Get-MonocleElement `
+        -FilterType $PSCmdlet.ParameterSetName `
+        -Id $Id `
+        -TagName $TagName `
+        -AttributeName $AttributeName `
+        -AttributeValue $AttributeValue `
+        -ElementValue $ElementValue `
+        -MPath $MPath
 
-    $element = Get-MonocleElement -Name $ElementName -TagName $TagName -AttributeName $AttributeName -FindByValue:$FindByValue -MPath:$MPath
+    Write-MonocleHost -Message "Downloading image from $($result.Id)"
 
-    $tag = $element.tagName
+    $tag = $result.Element.tagName
     if (($tag -ine 'img') -and ($tag -ine 'image')) {
-        throw "Element $ElementName is not an image element: $tag"
+        throw "Element $($result.Id) is not an image element: $tag"
     }
 
-    if ([string]::IsNullOrWhiteSpace($element.src)) {
-        throw "Element $ElementName has no src attribute"
+    if ([string]::IsNullOrWhiteSpace($result.Element.src)) {
+        throw "Element $($result.Id) has no src attribute"
     }
 
-    Invoke-MonocleDownloadImage -Source $element.src -Path $Path
+    Invoke-MonocleDownloadImage -Source $result.Element.src -Path $Path
 }
 
 function Restart-MonocleBrowser

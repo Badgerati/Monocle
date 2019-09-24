@@ -35,7 +35,7 @@ function Set-MonocleElementValue
     )
 
     # Attempt to retrieve an appropriate element
-    $element = Get-MonocleElement `
+    $result = Get-MonocleElement `
         -FilterType $PSCmdlet.ParameterSetName `
         -Id $Id `
         -TagName $TagName `
@@ -45,18 +45,18 @@ function Set-MonocleElementValue
         -MPath $MPath
 
     if ($Mask) {
-        Write-MonocleHost -Message "Setting $($element.tagName) element value to: ********"
+        Write-MonocleHost -Message "Setting $($result.Id) element value to: ********"
     }
     else {
-        Write-MonocleHost -Message "Setting $($element.tagName) element value to: $Value"
+        Write-MonocleHost -Message "Setting $($result.Id) element value to: $Value"
     }
 
     # Set the value of the element, if it's a select element, set the appropriate option with value to be selected
-    if ($element.Length -gt 1 -and $element[0].tagName -ieq 'option') {
-        ($element | Where-Object { $_.innerHTML -ieq $Value }).Selected = $true
+    if ($result.Element.Length -gt 1 -and $result.Element[0].tagName -ieq 'option') {
+        ($result.Element | Where-Object { $_.innerHTML -ieq $Value }).Selected = $true
     }
     else {
-        $element.value = $Value
+        $result.Element.value = $Value
     }
 }
 
@@ -93,7 +93,7 @@ function Get-MonocleElementValue
         $UseInnerHtml
     )
 
-    $element = Get-MonocleElement `
+    $result = Get-MonocleElement `
         -FilterType $PSCmdlet.ParameterSetName `
         -Id $Id `
         -TagName $TagName `
@@ -103,16 +103,16 @@ function Get-MonocleElementValue
         -MPath $MPath
 
     # get the value of the element, if it's a select element, get the appropriate option where option is selected
-    if (($element.Length -gt 1) -and ($element[0].tagName -ieq 'option')) {
-        return ($element | Where-Object { $_.Selected -eq $true }).innerHTML
+    if (($result.Element.Length -gt 1) -and ($result.Element[0].tagName -ieq 'option')) {
+        return ($result.Element | Where-Object { $_.Selected -eq $true }).innerHTML
     }
 
     # if not a select element, then return either the innerHTML or value
     if ($UseInnerHtml) {
-        return $element.innerHTML
+        return $result.Element.innerHTML
     }
 
-    return $element.value
+    return $result.Element.value
 }
 
 function Test-MonocleElement
@@ -145,7 +145,7 @@ function Test-MonocleElement
         $MPath
     )
 
-    $element = Get-MonocleElement `
+    $result = Get-MonocleElement `
         -FilterType $PSCmdlet.ParameterSetName `
         -Id $Id `
         -TagName $TagName `
@@ -155,7 +155,7 @@ function Test-MonocleElement
         -MPath $MPath `
         -NoThrow
 
-    return !(Test-MonocleElementNull -Element $element)
+    return !(Test-MonocleElementNull -Element $result.Element)
 }
 
 function Wait-MonocleValue
@@ -244,16 +244,24 @@ function Wait-MonocleElement
     )
 
     $count = 0
-    $element = [System.DBNull]::Value
+    $result = Get-MonocleElement `
+        -FilterType $PSCmdlet.ParameterSetName `
+        -Id $Id `
+        -TagName $TagName `
+        -AttributeName $AttributeName `
+        -AttributeValue $AttributeValue `
+        -ElementValue $ElementValue `
+        -MPath $MPath `
+        -NoThrow
 
-    Write-MonocleHost -Message "Waiting for element: $ElementName"
+    Write-MonocleHost -Message "Waiting for element: $($result.Id)"
 
-    while (Test-MonocleElementNull -Element $element) {
+    while (Test-MonocleElementNull -Element $result.Element) {
         if ($count -ge $AttemptCount) {
-            throw "Expected element: $($ElementName)`nBut found nothing`nOn: $($Browser.LocationURL)"
+            throw "Expected element: $($result.Id)`nBut found nothing`nOn: $($Browser.LocationURL)"
         }
 
-        $element = Get-MonocleElement `
+        $result = Get-MonocleElement `
             -FilterType $PSCmdlet.ParameterSetName `
             -Id $Id `
             -TagName $TagName `
@@ -296,12 +304,18 @@ function Invoke-MonocleElementClick
 
         [Parameter(ParameterSetName='MPath')]
         [string]
-        $MPath
+        $MPath,
+
+        [Parameter()]
+        [int]
+        $Duration = 10,
+
+        [switch]
+        $WaitUrl
     )
 
-    Write-MonocleHost -Message "Clicking element: $ElementName"
-
-    $element = Get-MonocleElement `
+    # get the element to click
+    $result = Get-MonocleElement `
         -FilterType $PSCmdlet.ParameterSetName `
         -Id $Id `
         -TagName $TagName `
@@ -310,9 +324,16 @@ function Invoke-MonocleElementClick
         -ElementValue $ElementValue `
         -MPath $MPath
 
-    $element.click()
+    Write-MonocleHost -Message "Clicking element: $($result.Id)"
 
+    $url = Get-MonocleUrl
+    $result.Element.click() | Out-Null
     Start-MonocleSleepWhileBusy
+
+    # check if we should wait until the url is different
+    if ($WaitUrl) {
+        Wait-MonocleUrlDifferent -CurrentUrl $url -Duration $Duration
+    }
 }
 
 function Invoke-MonocleElementCheck
@@ -347,15 +368,8 @@ function Invoke-MonocleElementCheck
         $Uncheck
     )
 
-    if ($Uncheck) {
-        Write-MonocleHost -Message "Unchecking element: $ElementName"
-    }
-    else {
-        Write-MonocleHost -Message "Checking element: $ElementName"
-    }
-
     # Attempt to retrieve an appropriate element
-    $element = Get-MonocleElement `
+    $result = Get-MonocleElement `
         -FilterType $PSCmdlet.ParameterSetName `
         -Id $Id `
         -TagName $TagName `
@@ -364,8 +378,15 @@ function Invoke-MonocleElementCheck
         -ElementValue $ElementValue `
         -MPath $MPath
 
+    if ($Uncheck) {
+        Write-MonocleHost -Message "Unchecking element: $($result.Id)"
+    }
+    else {
+        Write-MonocleHost -Message "Checking element: $($result.Id)"
+    }
+
     # Attempt to toggle the check value
-    $element.Checked = !$Uncheck
+    $result.Element.Checked = !$Uncheck
 
     Start-MonocleSleepWhileBusy
 }
