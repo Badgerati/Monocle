@@ -36,7 +36,13 @@ function Invoke-MonocleDownloadImage
 
     Write-Verbose -Message "Downloading '$Source' to '$Path'"
 
-    Invoke-WebRequest -Uri $Source -OutFile $Path | Out-Null
+    if ($PSVersionTable.PSVersion.Major -le 5) {
+        Invoke-WebRequest -Uri $Source -OutFile $Path -UseBasicParsing | Out-Null
+    }
+    else {
+        Invoke-WebRequest -Uri $Source -OutFile $Path | Out-Null
+    }
+
     if (!$?) {
         throw 'Failed to download image'
     }
@@ -87,7 +93,13 @@ function Test-MonocleUrl
     $message = [string]::Empty
 
     try {
-        $result = Invoke-WebRequest -Uri $Url -TimeoutSec 30
+        if ($PSVersionTable.PSVersion.Major -le 5) {
+            $result = Invoke-WebRequest -Uri $Url -TimeoutSec 30 -UseBasicParsing
+        }
+        else {
+            $result = Invoke-WebRequest -Uri $Url -TimeoutSec 30
+        }
+
         $code = [int]$result.StatusCode
         $message = $result.StatusDescription
     }
