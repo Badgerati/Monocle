@@ -120,3 +120,23 @@ function Restart-MonocleBrowser
     Start-MonocleSleepWhileBusy
     Start-Sleep -Seconds 2
 }
+
+function Get-MonocleHtml
+{
+    [CmdletBinding()]
+    param (
+        [Parameter()]
+        [string]
+        $FilePath
+    )
+
+    $content = $Browser.Document.IHTMLDocument3_documentElement.outerHTML
+
+    if ([string]::IsNullOrWhiteSpace($FilePath)) {
+        Write-MonocleHost -Message "Retrieving the current page's HTML content"
+        return $content
+    }
+
+    Write-MonocleHost -Message "Writing the current page's HTML to '$($FilePath)'"
+    $content | Out-File -FilePath $FilePath -Force | Out-Null
+}
