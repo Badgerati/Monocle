@@ -14,15 +14,15 @@ function Set-MonocleUrl
         $Force
     )
 
-    # Test the URL first, ensure it exists
-    $code = 0
-    if (!$Force) {
-        $code = Test-MonocleUrl -Url $Url
-    }
-
     # ensure attempts is >=1
     if ($Attempts -le 0) {
         $Attempts = 1
+    }
+
+    # Test the URL first, ensure it exists
+    $code = 0
+    if (!$Force) {
+        $code = Test-MonocleUrl -Url $Url -Attempts $Attempts
     }
 
     # Browse to the URL and wait till it loads
