@@ -10,6 +10,7 @@ function Start-MonocleFlow
         [scriptblock]
         $ScriptBlock,
 
+        [Parameter(ParameterSetName='Screenshot')]
         [Parameter()]
         [string]
         $ScreenshotPath,
@@ -17,6 +18,7 @@ function Start-MonocleFlow
         [switch]
         $Visible,
 
+        [Parameter(ParameterSetName='Screenshot')]
         [switch]
         $ScreenshotOnFail,
 
@@ -27,7 +29,7 @@ function Start-MonocleFlow
     # create a new browser
     $Browser = New-Object -ComObject InternetExplorer.Application
     if (!$? -or ($null -eq $Browser)) {
-        throw 'Failed to create Browser for IE.'
+        throw 'Failed to create Browser for IE'
     }
 
     $Browser.Visible = [bool]$Visible
@@ -98,7 +100,7 @@ function Invoke-MonocleRetryScript
 
     # attempt the logic
     $attempt = 1
-    while ($attempt -lt $Attempts) {
+    while ($attempt -le $Attempts) {
         Write-MonocleHost -Message "Invoking '$($Name)' logic [attempt: $($attempt)]" -Backdent
 
         try {

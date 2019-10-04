@@ -82,7 +82,11 @@ function Test-MonocleUrl
         [Parameter(Mandatory=$true)]
         [ValidateNotNull()]
         [string]
-        $Url
+        $Url,
+
+        [Parameter()]
+        [int]
+        $Attempts = 1
     )
 
     # truncate the URL of any query parameters
@@ -92,37 +96,57 @@ function Test-MonocleUrl
     $code = 200
     $message = [string]::Empty
 
-    try {
-        if ($PSVersionTable.PSVersion.Major -le 5) {
-            $result = Invoke-WebRequest -Uri $Url -TimeoutSec 30 -UseBasicParsing
+    $attempt = 1
+    while ($attempt -le $Attempts) {
+        try {
+            Write-MonocleHost -Message "Testing: $url [attempt: $($attempt)]"
+
+            if ($PSVersionTable.PSVersion.Major -le 5) {
+                $result = Invoke-WebRequest -Uri $Url -TimeoutSec 30 -UseBasicParsing -ErrorAction Stop
+            }
+            else {
+                $result = Invoke-WebRequest -Uri $Url -TimeoutSec 30 -ErrorAction Stop
+            }
+
+            $code = [int]$result.StatusCode
+            $message = $result.StatusDescription
         }
-        else {
-            $result = Invoke-WebRequest -Uri $Url -TimeoutSec 30
+        catch [System.Net.WebException] {
+            $ex = $_.Exception
+
+            # if the exception doesn't contain a Response, then either the
+            # host doesn't exist, there were SSL issues, or something else went wrong
+            if ($null -eq $ex.Response) {
+                $code = -1
+                $message = $ex.Message
+            }
+            else {
+                $code = [int]$ex.Response.StatusCode.Value__
+                $message = $ex.Response.StatusDescription
+            }
+        }
+        catch {
+            $code = -1
+            $message = $_.Exception.Message
         }
 
-        $code = [int]$result.StatusCode
-        $message = $result.StatusDescription
-    }
-    catch [System.Net.WebException]
-    {
-        $ex = $_.Exception
-        
-        # if the exception doesn't contain a Response, then either the
-        # host doesn't exist, there were SSL issues, or something else went wrong
-        if ($null -eq $ex.Response) {
-            $code = -1
-            $message = $ex.Message
+        if (($code -eq -1) -or ($code -ge 400)) {
+            $attempt++
+            Start-Sleep -Seconds 1
+
+            if ($attempt -gt $Attempts) {
+                break
+            }
         }
         else {
-            $code = [int]$ex.Response.StatusCode.Value__
-            $message = $ex.Response.StatusDescription
+            break
         }
     }
 
     # anything that is 1xx-2xx is normally successful, anything that's
-    # 300+ is normally always a failure to load
+    # 400+ is normally always a failure to load
     # -1 is a fatal error (SSL, invalid host, etc)
-    if (($code -eq -1) -or ($code -ge 300)) {
+    if (($code -eq -1) -or ($code -ge 400)) {
         throw "Failed to load URL: '$Url'`nStatus: $code`nMessage: $message"
     }
 
