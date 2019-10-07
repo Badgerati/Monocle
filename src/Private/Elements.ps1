@@ -161,7 +161,7 @@ function Get-MonocleElementByTagName
 
     if (![string]::IsNullOrWhiteSpace($ElementValue))
     {
-        Write-Verbose -Message "Finding $($elements.Length) elements with tag <$TagName>, and value '$ElementValue'"
+        Write-Verbose -Message "Filtering $($elements.Length) elements with tag <$TagName>, and value '$ElementValue'"
 
         $element = $elements |
             Where-Object { $_.value -imatch $ElementValue }
