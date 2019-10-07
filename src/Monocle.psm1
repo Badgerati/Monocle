@@ -1,5 +1,12 @@
-# load private functions
+# root path to module
 $root = Split-Path -Parent -Path $MyInvocation.MyCommand.Path
+
+# get the path to the libraries and load them
+$libraries = Join-Path $root 'lib'
+$library = Join-Path $libraries 'Microsoft.mshtml.dll'
+[System.Reflection.Assembly]::LoadFrom($library) | Out-Null
+
+# load private functions
 Get-ChildItem "$($root)/Private/*.ps1" | Resolve-Path | ForEach-Object { . $_ }
 
 # get current functions to import public functions
