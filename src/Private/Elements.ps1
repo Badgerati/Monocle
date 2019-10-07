@@ -127,16 +127,29 @@ function Get-MonocleElementByTagName
     $document = $Browser.Document
 
     # get all elements for the tag
+    Write-Verbose -Message "Finding element with tag <$TagName>"
     $elements = $document.IHTMLDocument3_getElementsByTagName($TagName)
     $id = $TagName.ToLowerInvariant()
 
     # if we have attribute info, attempt to get an element
     if ($PSCmdlet.ParameterSetName -ieq 'Attribute')
     {
-        Write-Verbose -Message "Finding element with tag <$TagName>, attribute '$AttributeName' with value '$AttributeValue'"
+        Write-Verbose -Message "Filtering $($elements.Length) elements by attribute '$AttributeName' with value '$AttributeValue'"
+        $found = $false
+        $justFirst = [string]::IsNullOrWhiteSpace($ElementValue)
 
-        $elements = $elements |
-            Where-Object { $_.getAttribute($AttributeName) -imatch $AttributeValue }
+        $elements = @(foreach ($element in $elements) {
+            if ($element.getAttribute($AttributeName) -inotmatch $AttributeValue) {
+                continue
+            }
+
+            $found = $true
+            $element
+
+            if ($found -and $justFirst) {
+                break
+            }
+        })
 
         # throw error if can't find element
         if ((Test-MonocleElementNull -Element ($elements | Select-Object -First 1)) -and !$NoThrow) {
@@ -148,7 +161,7 @@ function Get-MonocleElementByTagName
 
     if (![string]::IsNullOrWhiteSpace($ElementValue))
     {
-        Write-Verbose -Message "Finding element with tag <$TagName>, and value '$ElementValue'"
+        Write-Verbose -Message "Finding $($elements.Length) elements with tag <$TagName>, and value '$ElementValue'"
 
         $element = $elements |
             Where-Object { $_.value -imatch $ElementValue }
