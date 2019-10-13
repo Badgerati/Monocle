@@ -26,9 +26,9 @@ function Set-MonocleElementValue
         [string]
         $ElementValue,
 
-        [Parameter(ParameterSetName='MPath')]
+        [Parameter(ParameterSetName='XPath')]
         [string]
-        $MPath,
+        $XPath,
 
         [switch]
         $Mask
@@ -42,7 +42,7 @@ function Set-MonocleElementValue
         -AttributeName $AttributeName `
         -AttributeValue $AttributeValue `
         -ElementValue $ElementValue `
-        -MPath $MPath
+        -XPath $XPath
 
     if ($Mask) {
         Write-MonocleHost -Message "Setting $($result.Id) element value to: ********"
@@ -52,11 +52,13 @@ function Set-MonocleElementValue
     }
 
     # Set the value of the element, if it's a select element, set the appropriate option with value to be selected
-    if ($result.Element.Length -gt 1 -and $result.Element[0].tagName -ieq 'option') {
-        ($result.Element | Where-Object { $_.innerHTML -ieq $Value }).Selected = $true
+    if ($result.Element.Length -gt 1 -and $result.Element[0].TagName -ieq 'option') {
+        $element = ($result.Element | Where-Object { $_.Text -ieq $Value })
+        $element.Click() | Out-Null
     }
     else {
-        $result.Element.value = $Value
+
+        $result.Element.SendKeys($Value)
     }
 }
 
@@ -85,12 +87,9 @@ function Get-MonocleElementValue
         [string]
         $ElementValue,
 
-        [Parameter(ParameterSetName='MPath')]
+        [Parameter(ParameterSetName='XPath')]
         [string]
-        $MPath,
-
-        [switch]
-        $UseInnerHtml
+        $XPath
     )
 
     $result = Get-MonocleElement `
@@ -100,19 +99,15 @@ function Get-MonocleElementValue
         -AttributeName $AttributeName `
         -AttributeValue $AttributeValue `
         -ElementValue $ElementValue `
-        -MPath $MPath
+        -XPath $XPath
 
     # get the value of the element, if it's a select element, get the appropriate option where option is selected
-    if (($result.Element.Length -gt 1) -and ($result.Element[0].tagName -ieq 'option')) {
-        return ($result.Element | Where-Object { $_.Selected -eq $true }).innerHTML
+    if (($result.Element.Length -gt 1) -and ($result.Element[0].TagName -ieq 'option')) {
+        return ($result.Element | Where-Object { $_.Selected -eq $true }).Text
     }
 
-    # if not a select element, then return either the innerHTML or value
-    if ($UseInnerHtml) {
-        return $result.Element.innerHTML
-    }
-
-    return $result.Element.value
+    # if not a select element, then return the value
+    return $result.Element.Text
 }
 
 function Test-MonocleElement
@@ -140,9 +135,9 @@ function Test-MonocleElement
         [string]
         $ElementValue,
 
-        [Parameter(ParameterSetName='MPath')]
+        [Parameter(ParameterSetName='XPath')]
         [string]
-        $MPath
+        $XPath
     )
 
     $result = Get-MonocleElement `
@@ -152,10 +147,10 @@ function Test-MonocleElement
         -AttributeName $AttributeName `
         -AttributeValue $AttributeValue `
         -ElementValue $ElementValue `
-        -MPath $MPath `
+        -XPath $XPath `
         -NoThrow
 
-    return !(Test-MonocleElementNull -Element $result.Element)
+    return ($null -ne $result.Element)
 }
 
 function Wait-MonocleValue
@@ -182,9 +177,9 @@ function Wait-MonocleValue
         'pattern' {
             Write-MonocleHost -Message "Waiting for value to match pattern: $Pattern"
 
-            while ($Browser.Document.body.outerHTML -inotmatch $Pattern) {
+            while ($Browser.PageSource -inotmatch $Pattern) {
                 if ($count -ge $AttemptCount) {
-                    throw "Expected value to match pattern: $($Pattern)`nBut found nothing`nOn: $($Browser.LocationURL)"
+                    throw "Expected value to match pattern: $($Pattern)`nBut found nothing`nOn: $(Get-MonocleUrl)"
                 }
 
                 $count++
@@ -195,9 +190,9 @@ function Wait-MonocleValue
         'value' {
             Write-MonocleHost -Message "Waiting for value: $Value"
 
-            while ($Browser.Document.body.outerHTML -ine $Value) {
+            while ($Browser.PageSource -ine $Value) {
                 if ($count -ge $AttemptCount) {
-                    throw "Expected value: $($Value)`nBut found nothing`nOn: $($Browser.LocationURL)"
+                    throw "Expected value: $($Value)`nBut found nothing`nOn: $(Get-MonocleUrl)"
                 }
 
                 $count++
@@ -234,9 +229,9 @@ function Wait-MonocleElement
         [string]
         $ElementValue,
 
-        [Parameter(ParameterSetName='MPath')]
+        [Parameter(ParameterSetName='XPath')]
         [string]
-        $MPath,
+        $XPath,
 
         [Parameter()]
         [int]
@@ -251,14 +246,14 @@ function Wait-MonocleElement
         -AttributeName $AttributeName `
         -AttributeValue $AttributeValue `
         -ElementValue $ElementValue `
-        -MPath $MPath `
+        -XPath $XPath `
         -NoThrow
 
     Write-MonocleHost -Message "Waiting for element: $($result.Id)"
 
-    while (Test-MonocleElementNull -Element $result.Element) {
+    while ($null -eq $result.Element) {
         if ($count -ge $AttemptCount) {
-            throw "Expected element: $($result.Id)`nBut found nothing`nOn: $($Browser.LocationURL)"
+            throw "Expected element: $($result.Id)`nBut found nothing`nOn: $(Get-MonocleUrl)"
         }
 
         $result = Get-MonocleElement `
@@ -268,7 +263,7 @@ function Wait-MonocleElement
             -AttributeName $AttributeName `
             -AttributeValue $AttributeValue `
             -ElementValue $ElementValue `
-            -MPath $MPath `
+            -XPath $XPath `
             -NoThrow
 
         $count++
@@ -302,9 +297,9 @@ function Invoke-MonocleElementClick
         [string]
         $ElementValue,
 
-        [Parameter(ParameterSetName='MPath')]
+        [Parameter(ParameterSetName='XPath')]
         [string]
-        $MPath,
+        $XPath,
 
         [Parameter()]
         [int]
@@ -322,12 +317,12 @@ function Invoke-MonocleElementClick
         -AttributeName $AttributeName `
         -AttributeValue $AttributeValue `
         -ElementValue $ElementValue `
-        -MPath $MPath
+        -XPath $XPath
 
     Write-MonocleHost -Message "Clicking element: $($result.Id)"
 
     $url = Get-MonocleUrl
-    $result.Element.click() | Out-Null
+    $result.Element.Click() | Out-Null
     Start-MonocleSleepWhileBusy
 
     # check if we should wait until the url is different
@@ -360,9 +355,9 @@ function Invoke-MonocleElementCheck
         [string]
         $ElementValue,
 
-        [Parameter(ParameterSetName='MPath')]
+        [Parameter(ParameterSetName='XPath')]
         [string]
-        $MPath,
+        $XPath,
 
         [switch]
         $Uncheck
@@ -376,17 +371,20 @@ function Invoke-MonocleElementCheck
         -AttributeName $AttributeName `
         -AttributeValue $AttributeValue `
         -ElementValue $ElementValue `
-        -MPath $MPath
+        -XPath $XPath
 
     if ($Uncheck) {
         Write-MonocleHost -Message "Unchecking element: $($result.Id)"
+        if ($result.Element.Selected) {
+            $result.Element.Click() | Out-Null
+        }
     }
     else {
         Write-MonocleHost -Message "Checking element: $($result.Id)"
+        if (!$result.Element.Selected) {
+            $result.Element.Click() | Out-Null
+        }
     }
-
-    # Attempt to toggle the check value
-    $result.Element.Checked = !$Uncheck
 
     Start-MonocleSleepWhileBusy
 }

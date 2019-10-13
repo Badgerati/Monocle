@@ -15,6 +15,11 @@ function Start-MonocleFlow
         [string]
         $ScreenshotPath,
 
+        [Parameter()]
+        [ValidateSet('', 'IE', 'Chrome', 'Firefox')]
+        [string]
+        $Type = [string]::Empty,
+
         [switch]
         $Visible,
 
@@ -27,13 +32,10 @@ function Start-MonocleFlow
     )
 
     # create a new browser
-    $Browser = New-Object -ComObject InternetExplorer.Application
+    $Browser = Initialize-MonocleBrowser -Type $Type -Visible:$Visible
     if (!$? -or ($null -eq $Browser)) {
-        throw 'Failed to create Browser for IE'
+        throw 'Failed to create Browser'
     }
-
-    $Browser.Visible = [bool]$Visible
-    $Browser.TheaterMode = $false
 
     # set the output depth
     $env:MONOCLE_OUTPUT_DEPTH = '1'
@@ -46,6 +48,7 @@ function Start-MonocleFlow
     }
     catch [exception]
     {
+        #TODO:
         # take a screenshot if enabled
         if ($ScreenshotOnFail) {
             $screenshotName = ("{0}_{1}" -f $Name, [DateTime]::Now.ToString('yyyy-MM-dd-HH-mm-ss'))
@@ -68,6 +71,7 @@ function Start-MonocleFlow
         # close the browser
         if (($null -ne $Browser) -and !$KeepOpen) {
             $Browser.Quit()
+            $Browser.Dispose()
             $Browser = $null
         }
     }

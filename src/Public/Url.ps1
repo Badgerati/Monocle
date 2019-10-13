@@ -30,7 +30,7 @@ function Set-MonocleUrl
     while ($attempt -le $Attempts) {
         try {
             Write-MonocleHost -Message "Navigating to: $url (Status: $code) [attempt: $($attempt)]"
-            $Browser.Navigate($Url) | Out-Null
+            $Browser.Navigate().GoToUrl($Url) | Out-Null
             Start-MonocleSleepWhileBusy
 
             break
@@ -52,7 +52,7 @@ function Get-MonocleUrl
     [OutputType([string])]
     param()
 
-    return $Browser.LocationURL
+    return $Browser.Url
 }
 
 function Edit-MonocleUrl
@@ -69,11 +69,9 @@ function Edit-MonocleUrl
 
         [switch]
         $Force
-
-        #TODO: wait
     )
 
-    $Url = $Browser.LocationURL -ireplace $Pattern, $Value
+    $Url = ((Get-MonocleUrl) -ireplace $Pattern, $Value)
     Set-MonocleUrl -Url $Url -Force:$Force
     Start-MonocleSleepWhileBusy
 }
@@ -123,9 +121,9 @@ function Wait-MonocleUrl
                 'pattern' {
                     Write-MonocleHost -Message "Waiting for URL to match pattern: $($Pattern) [attempt: $($attempt)]"
 
-                    while ($Browser.LocationURL -inotmatch $Pattern) {
+                    while ((Get-MonocleUrl) -inotmatch $Pattern) {
                         if ($seconds -ge $Duration) {
-                            throw "Expected URL to match pattern: $($Pattern)`nBut got: $($Browser.LocationURL)"
+                            throw "Expected URL to match pattern: $($Pattern)`nBut got: $(Get-MonocleUrl)"
                         }
 
                         $seconds++
@@ -136,9 +134,9 @@ function Wait-MonocleUrl
                 'url' {
                     Write-MonocleHost -Message "Waiting for URL: $($Url) [attempt: $($attempt)]"
 
-                    while ((!$StartsWith -and $Browser.LocationURL -ine $Url) -or ($StartsWith -and !$Browser.LocationURL.StartsWith($Url, [StringComparison]::InvariantCultureIgnoreCase))) {
+                    while ((!$StartsWith -and ((Get-MonocleUrl) -ine $Url)) -or ($StartsWith -and !((Get-MonocleUrl).StartsWith($Url, [StringComparison]::InvariantCultureIgnoreCase)))) {
                         if ($seconds -ge $Duration) {
-                            throw "Expected URL: $($Url)`nBut got: $($Browser.LocationURL)"
+                            throw "Expected URL: $($Url)`nBut got: $(Get-MonocleUrl)"
                         }
 
                         $seconds++

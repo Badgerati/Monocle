@@ -4,9 +4,9 @@ function Start-MonocleSleepWhileBusy
     param ()
 
     $count = 0
-    $timeout = 30
+    $timeout = 5
 
-    while ($Browser.Busy)
+    while ($Browser.ExecuteScript('return document.readyState') -ine 'complete')
     {
         if ($count -ge $timeout) {
             throw "Loading URL has timed-out after $timeout second(s)"
@@ -158,6 +158,7 @@ function Set-MonocleBrowserFocus
     [CmdletBinding()]
     param ()
 
+    #TODO: Remove?
     try
     {
         if (!([System.Management.Automation.PSTypeName]'NativeHelper').Type)

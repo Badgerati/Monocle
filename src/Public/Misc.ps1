@@ -23,6 +23,7 @@ function Invoke-MonocoleScreenshot
         $Path
     )
 
+    #TODO:
     $initialVisibleState = $Browser.Visible
 
     $Browser.Visible = $true
@@ -82,9 +83,9 @@ function Save-MonocleImage
         [string]
         $ElementValue,
 
-        [Parameter(ParameterSetName='MPath')]
+        [Parameter(ParameterSetName='XPath')]
         [string]
-        $MPath
+        $XPath
     )
 
     $result = Get-MonocleElement `
@@ -94,20 +95,21 @@ function Save-MonocleImage
         -AttributeName $AttributeName `
         -AttributeValue $AttributeValue `
         -ElementValue $ElementValue `
-        -MPath $MPath
+        -XPath $XPath
 
     Write-MonocleHost -Message "Downloading image from $($result.Id)"
 
-    $tag = $result.Element.tagName
-    if (($tag -ine 'img') -and ($tag -ine 'image')) {
+    $tag = $result.Element.TagName
+    if (@('img', 'image') -inotcontains $tag) {
         throw "Element $($result.Id) is not an image element: $tag"
     }
 
-    if ([string]::IsNullOrWhiteSpace($result.Element.src)) {
+    $src = $result.Element.GetAttribute('src')
+    if ([string]::IsNullOrWhiteSpace($src)) {
         throw "Element $($result.Id) has no src attribute"
     }
 
-    Invoke-MonocleDownloadImage -Source $result.Element.src -Path $Path
+    Invoke-MonocleDownloadImage -Source $src -Path $Path
 }
 
 function Restart-MonocleBrowser
@@ -116,7 +118,7 @@ function Restart-MonocleBrowser
     param ()
 
     Write-MonocleHost -Message "Refreshing the Browser"
-    $Browser.Refresh()
+    $Browser.Navigate().Refresh()
     Start-MonocleSleepWhileBusy
     Start-Sleep -Seconds 2
 }
@@ -130,7 +132,7 @@ function Get-MonocleHtml
         $FilePath
     )
 
-    $content = $Browser.Document.IHTMLDocument3_documentElement.outerHTML
+    $content = $Browser.PageSource
 
     if ([string]::IsNullOrWhiteSpace($FilePath)) {
         Write-MonocleHost -Message "Retrieving the current page's HTML content"

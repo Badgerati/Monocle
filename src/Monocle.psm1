@@ -1,10 +1,23 @@
 # root path to module
 $root = Split-Path -Parent -Path $MyInvocation.MyCommand.Path
 
-# get the path to the libraries and load them
+# get the path to the drivers and load them
 $libraries = Join-Path $root 'lib'
-$library = Join-Path $libraries 'Microsoft.mshtml.dll'
-[System.Reflection.Assembly]::LoadFrom($library) | Out-Null
+$path = Join-Path $libraries 'WebDriver'
+
+switch ($PSEdition.ToLowerInvariant()) {
+    'core' {
+        $path = Join-Path $path 'netstandard2.0'
+    }
+
+    default {
+        $path = Join-Path $path 'net45'
+    }
+}
+
+Get-ChildItem -Path $path -Filter '*.dll' -File -Force | ForEach-Object {
+    Add-Type -Path $_.FullName | Out-Null
+}
 
 # load private functions
 Get-ChildItem "$($root)/Private/*.ps1" | Resolve-Path | ForEach-Object { . $_ }
