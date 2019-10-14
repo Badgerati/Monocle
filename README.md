@@ -79,7 +79,7 @@ The following is a list of available functions in Monocle:
 * Invoke-MonocleElementCheck
 * Invoke-MonocleElementClick
 * Invoke-MonocleRetryScript
-* Invoke-MonocoleScreenshot
+* Invoke-MonocleScreenshot
 * New-MonocleBrowser
 * Restart-MonocleBrowser
 * Save-MonocleImage
