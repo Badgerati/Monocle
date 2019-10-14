@@ -77,6 +77,7 @@ function Initialize-MonocleIEBrowser
 
     $service = [OpenQA.Selenium.IE.InternetExplorerDriverService]::CreateDefaultService((Get-MonocleBrowserPath))
     $service.HideCommandPromptWindow = $true
+    $service.SuppressInitialDiagnosticInformation = $true
 
     return [OpenQA.Selenium.IE.InternetExplorerDriver]::new($service, $options)
 }
@@ -106,6 +107,7 @@ function Initialize-MonocleChromeBrowser
 
     $service = [OpenQA.Selenium.Chrome.ChromeDriverService]::CreateDefaultService((Get-MonocleBrowserPath))
     $service.HideCommandPromptWindow = $true
+    $service.SuppressInitialDiagnosticInformation = $true
 
     return [OpenQA.Selenium.Chrome.ChromeDriver]::new($service, $options)
 }
@@ -121,6 +123,7 @@ function Initialize-MonocleFirefoxBrowser
 
     $service = [OpenQA.Selenium.Firefox.FirefoxDriverService]::CreateDefaultService((Get-MonocleBrowserPath))
     $service.HideCommandPromptWindow = $true
+    $service.SuppressInitialDiagnosticInformation = $true
 
     return [OpenQA.Selenium.Firefox.FirefoxDriver]::new($service, $options, [timespan]::FromSeconds(60))
 }
