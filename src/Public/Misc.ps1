@@ -11,7 +11,7 @@ function Start-MonocleSleep
     Start-Sleep -Seconds $Seconds
 }
 
-function Invoke-MonocoleScreenshot
+function Invoke-MonocleScreenshot
 {
     [CmdletBinding()]
     param (

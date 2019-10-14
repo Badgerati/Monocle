@@ -94,7 +94,7 @@ function Start-MonocleFlow
         # take a screenshot if enabled
         if ($ScreenshotOnFail) {
             $screenshotName = "$($Name)_$([DateTime]::Now.ToString('yyyy-MM-dd-HH-mm-ss'))"
-            $sPath = Invoke-MonocoleScreenshot -Name $screenshotName -Path $ScreenshotPath
+            $sPath = Invoke-MonocleScreenshot -Name $screenshotName -Path $ScreenshotPath
         }
 
         try {
