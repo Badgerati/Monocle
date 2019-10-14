@@ -87,6 +87,7 @@ The following is a list of available functions in Monocle:
 * Set-MonocleUrl
 * Start-MonocleFlow
 * Start-MonocleSleep
+* Submit-MonocleForm
 * Test-MonocleElement
 * Wait-MonocleElement
 * Wait-MonocleUrl

@@ -1,6 +1,6 @@
 function Get-MonocleBrowserPath
 {
-    $root = (Split-Path -Parent -Path (Get-Module -Name Monocle).Path)
+    $root = (Split-Path -Parent -Path $PSScriptRoot)
     $root = (Join-Path $root 'lib')
     $root = (Join-Path $root 'Browsers')
 

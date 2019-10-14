@@ -38,7 +38,10 @@ function Set-MonocleElementValue
         $Wait,
 
         [switch]
-        $Mask
+        $Mask,
+
+        [switch]
+        $NoClear
     )
 
     # Attempt to retrieve an appropriate element
@@ -66,8 +69,72 @@ function Set-MonocleElementValue
         $element.Click() | Out-Null
     }
     else {
+        if (!$NoClear) {
+            $result.Element.Clear()
+        }
 
         $result.Element.SendKeys($Value)
+    }
+}
+
+function Submit-MonocleForm
+{
+    [CmdletBinding(DefaultParameterSetName='Id')]
+    [OutputType([string])]
+    param (
+        [Parameter(Mandatory=$true, ParameterSetName='Id')]
+        [string]
+        $Id,
+
+        [Parameter(Mandatory=$true, ParameterSetName='Tag')]
+        [string]
+        $TagName,
+
+        [Parameter(ParameterSetName='Tag')]
+        [string]
+        $AttributeName,
+
+        [Parameter(ParameterSetName='Tag')]
+        [string]
+        $AttributeValue,
+
+        [Parameter(ParameterSetName='Tag')]
+        [string]
+        $ElementValue,
+
+        [Parameter(ParameterSetName='XPath')]
+        [string]
+        $XPath,
+
+        [Parameter()]
+        [int]
+        $Timeout = 10,
+
+        [switch]
+        $Wait,
+
+        [switch]
+        $WaitUrl
+    )
+
+    $result = Get-MonocleElement `
+        -FilterType $PSCmdlet.ParameterSetName `
+        -Id $Id `
+        -TagName $TagName `
+        -AttributeName $AttributeName `
+        -AttributeValue $AttributeValue `
+        -ElementValue $ElementValue `
+        -XPath $XPath `
+        -Timeout $Timeout `
+        -Wait:$Wait
+
+    $url = Get-MonocleUrl
+    $result.Element.Submit() | Out-Null
+    Start-MonocleSleepWhileBusy
+
+    # check if we should wait until the url is different
+    if ($WaitUrl) {
+        Wait-MonocleUrlDifferent -CurrentUrl $url -Timeout $Timeout
     }
 }
 
