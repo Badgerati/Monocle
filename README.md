@@ -112,3 +112,19 @@ Invoke-MonocleElementClick -Id 'element-id' -Wait
 ```
 
 ### Docker
+
+Monocle has an offical Docker image, which comes preloaded with:
+
+* Monocle (obviously!)
+* Firefox
+* Google Chrome
+
+You can use this image to run your Monocle flows - and they will also automatically run headless.
+
+An example `Dockerfile` could be:
+
+```dockerfile
+FROM badgerati/monocle:latest
+COPY . /usr/src/scripts
+CMD [ "pwsh", "-c", "cd /usr/src/scripts; ./flow.ps1" ]
+```
