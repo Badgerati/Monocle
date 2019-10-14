@@ -75,8 +75,8 @@ function Initialize-MonocleIEBrowser
     $options.RequireWindowFocus = $false
     $options.IgnoreZoomLevel = $true
 
-    $browsers = Get-MonocleBrowserPath
-    $service = [OpenQA.Selenium.IE.InternetExplorerDriverService]::new($browsers)
+    $service = [OpenQA.Selenium.IE.InternetExplorerDriverService]::CreateDefaultService((Get-MonocleBrowserPath))
+    $service.HideCommandPromptWindow = $true
 
     return [OpenQA.Selenium.IE.InternetExplorerDriver]::new($service, $options)
 }
@@ -104,8 +104,8 @@ function Initialize-MonocleChromeBrowser
         $options.AddArguments('headless')
     }
 
-    $browsers = Get-MonocleBrowserPath
-    $service = [OpenQA.Selenium.Chrome.ChromeDriverService]::CreateDefaultService($browsers)
+    $service = [OpenQA.Selenium.Chrome.ChromeDriverService]::CreateDefaultService((Get-MonocleBrowserPath))
+    $service.HideCommandPromptWindow = $true
 
     return [OpenQA.Selenium.Chrome.ChromeDriver]::new($service, $options)
 }
@@ -119,8 +119,8 @@ function Initialize-MonocleFirefoxBrowser
 
     $options = [OpenQA.Selenium.Firefox.FirefoxOptions]::new()
 
-    $browsers = Get-MonocleBrowserPath
-    $service = [OpenQA.Selenium.Firefox.FirefoxDriverService]::new($browsers)
+    $service = [OpenQA.Selenium.Firefox.FirefoxDriverService]::CreateDefaultService((Get-MonocleBrowserPath))
+    $service.HideCommandPromptWindow = $true
 
     return [OpenQA.Selenium.Firefox.FirefoxDriver]::new($service, $options, [timespan]::FromSeconds(60))
 }
