@@ -5,14 +5,26 @@ function Get-MonocleBrowserPath
     $root = (Join-Path $root 'Browsers')
 
     $os = 'win'
+    $chmod = $false
+
     if ($IsLinux) {
         $os = 'linux'
+        $chmod = $true
     }
     elseif ($IsMacOS) {
         $os = 'mac'
+        $chmod = $true
     }
 
-    return (Join-Path $root $os)
+    $path = (Join-Path $root $os)
+
+    if ($chmod) {
+        Get-ChildItem -Path $path -Force -File | ForEach-Object {
+            chmod +x $_.FullName | Out-Null
+        }
+    }
+
+    return $path
 }
 
 function Initialize-MonocleBrowser
@@ -64,7 +76,9 @@ function Initialize-MonocleIEBrowser
     $options.IgnoreZoomLevel = $true
 
     $browsers = Get-MonocleBrowserPath
-    return [OpenQA.Selenium.IE.InternetExplorerDriver]::new((Join-Path $browsers 'IEDriverServer.exe'), $options)
+    $service = [OpenQA.Selenium.IE.InternetExplorerDriverService]::new($browsers)
+
+    return [OpenQA.Selenium.IE.InternetExplorerDriver]::new($service, $options)
 }
 
 function Initialize-MonocleChromeBrowser
@@ -76,6 +90,11 @@ function Initialize-MonocleChromeBrowser
 
     $options = [OpenQA.Selenium.Chrome.ChromeOptions]::new()
 
+    # needed to prevent general issues
+    $options.AddArguments('no-first-run')
+    $options.AddArguments('no-default-browser-check')
+    $options.AddArguments('disable-default-apps')
+
     # these are needed to allow running in a container
     $options.AddArguments('no-sandbox')
     $options.AddArguments('disable-dev-shm-usage')
@@ -86,7 +105,9 @@ function Initialize-MonocleChromeBrowser
     }
 
     $browsers = Get-MonocleBrowserPath
-    return [OpenQA.Selenium.Chrome.ChromeDriver]::new((Join-Path $browsers 'chromedriver*' -Resolve), $options)
+    $service = [OpenQA.Selenium.Chrome.ChromeDriverService]::CreateDefaultService($browsers)
+
+    return [OpenQA.Selenium.Chrome.ChromeDriver]::new($service, $options)
 }
 
 function Initialize-MonocleFirefoxBrowser
@@ -99,5 +120,7 @@ function Initialize-MonocleFirefoxBrowser
     $options = [OpenQA.Selenium.Firefox.FirefoxOptions]::new()
 
     $browsers = Get-MonocleBrowserPath
-    return [OpenQA.Selenium.Firefox.FirefoxDriver]::new((Join-Path $browsers 'geckodriver*' -Resolve), $options)
+    $service = [OpenQA.Selenium.Firefox.FirefoxDriverService]::new($browsers)
+
+    return [OpenQA.Selenium.Firefox.FirefoxDriver]::new($service, $options, [timespan]::FromSeconds(60))
 }

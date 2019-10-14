@@ -3,7 +3,7 @@ $path = "$($path)/src/Monocle.psm1"
 Import-Module $path -Force -ErrorAction Stop
 
 # Create a browser object
-$browser = New-MonocleBrowser -Type Firefox
+$browser = New-MonocleBrowser -Type Chrome
 
 # Monocle runs commands in web flows, for easy disposal and test tracking
 # Each flow needs a name
@@ -13,7 +13,7 @@ Start-MonocleFlow -Name 'Load YouTube' -Browser $browser -ScriptBlock {
     Set-MonocleUrl -Url 'https://www.youtube.com'
 
     # Sets the search bar element to the passed value to query
-    Set-MonocleElementValue -Id 'search_query' -Value 'Beerus Madness (Extended)'
+    <#Set-MonocleElementValue -Id 'search_query' -Value 'Beerus Madness (Extended)'
 
     # Tells the browser to click the search button
     Invoke-MonocleElementClick -Id 'search-icon-legacy'
@@ -30,7 +30,7 @@ Start-MonocleFlow -Name 'Load YouTube' -Browser $browser -ScriptBlock {
     Invoke-MonocleElementClick -XPath "//a[@title='Dragon Ball Super Soundtrack - Beerus Madness (Extended)']"
 
     # Again, we expect the URL to be loaded
-    Wait-MonocleUrl -Url 'https://www.youtube.com/watch?v=SI6Yyr-iI6M'
+    Wait-MonocleUrl -Url 'https://www.youtube.com/watch?v=SI6Yyr-iI6M'#>
 
 } -CloseBrowser
 
