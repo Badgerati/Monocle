@@ -1,3 +1,5 @@
+$ProgressPreference = 'SilentlyContinue'
+
 # root path to module
 $root = Split-Path -Parent -Path $MyInvocation.MyCommand.Path
 

@@ -101,7 +101,7 @@ function Initialize-MonocleChromeBrowser
     $options.AddArguments('disable-dev-shm-usage')
 
     # hide the browser?
-    if ($Hide) {
+    if ($Hide -or ($env:MONOCLE_HEADLESS -ieq '1')) {
         $options.AddArguments('headless')
     }
 
@@ -120,6 +120,11 @@ function Initialize-MonocleFirefoxBrowser
     )
 
     $options = [OpenQA.Selenium.Firefox.FirefoxOptions]::new()
+
+    # hide the browser?
+    if ($Hide -or ($env:MONOCLE_HEADLESS -ieq '1')) {
+        $options.AddArguments('-headless')
+    }
 
     $service = [OpenQA.Selenium.Firefox.FirefoxDriverService]::CreateDefaultService((Get-MonocleBrowserPath))
     $service.HideCommandPromptWindow = $true

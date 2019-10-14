@@ -1,6 +1,7 @@
-$path = Split-Path -Parent -Path (Split-Path -Parent -Path $MyInvocation.MyCommand.Path)
-$path = "$($path)/src/Monocle.psm1"
-Import-Module $path -Force -ErrorAction Stop
+#$path = Split-Path -Parent -Path (Split-Path -Parent -Path $MyInvocation.MyCommand.Path)
+#$path = "$($path)/src/Monocle.psm1"
+#Import-Module $path -Force -ErrorAction Stop
+Import-Module -Name Monocle -Force -ErrorAction Stop
 
 # Create a browser object
 $browser = New-MonocleBrowser -Type Chrome
