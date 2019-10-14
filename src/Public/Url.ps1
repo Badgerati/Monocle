@@ -169,7 +169,7 @@ function Wait-MonocleUrlDifferent
     param (
         [Parameter(Mandatory=$true)]
         [string]
-        $CurrentUrl,
+        $FromUrl,
 
         [Parameter()]
         [int]
@@ -184,11 +184,11 @@ function Wait-MonocleUrlDifferent
     # generic values
     $seconds = 0
 
-    Write-MonocleHost -Message "Waiting for URL to change: From $($CurrentUrl)"
+    Write-MonocleHost -Message "Waiting for URL to change from: $($FromUrl)"
 
-    while (($newUrl = Get-MonocleUrl) -ieq $CurrentUrl) {
+    while (($newUrl = Get-MonocleUrl) -ieq $FromUrl) {
         if ($seconds -ge $Timeout) {
-            throw "Expected URL to change: From $($CurrentUrl)`nBut got: $($newUrl)"
+            throw "Expected URL to change: From $($FromUrl)`nBut got: $($newUrl)"
         }
 
         $seconds++

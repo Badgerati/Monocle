@@ -134,7 +134,7 @@ function Submit-MonocleForm
 
     # check if we should wait until the url is different
     if ($WaitUrl) {
-        Wait-MonocleUrlDifferent -CurrentUrl $url -Timeout $Timeout
+        Wait-MonocleUrlDifferent -FromUrl $url -Timeout $Timeout
     }
 }
 
@@ -417,7 +417,7 @@ function Invoke-MonocleElementClick
 
     # check if we should wait until the url is different
     if ($WaitUrl) {
-        Wait-MonocleUrlDifferent -CurrentUrl $url -Timeout $Timeout
+        Wait-MonocleUrlDifferent -FromUrl $url -Timeout $Timeout
     }
 }
 
