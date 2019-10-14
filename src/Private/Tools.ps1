@@ -4,7 +4,7 @@ function Start-MonocleSleepWhileBusy
     param ()
 
     $count = 0
-    $timeout = 5
+    $timeout = $Browser.Manage().Timeouts().PageLoad
 
     while ($Browser.ExecuteScript('return document.readyState') -ine 'complete')
     {
