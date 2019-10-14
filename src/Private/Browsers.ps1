@@ -34,6 +34,10 @@ function Initialize-MonocleBrowser
         [string]
         $Type,
 
+        [Parameter()]
+        [string[]]
+        $Arguments,
+
         [switch]
         $Hide
     )
@@ -47,15 +51,15 @@ function Initialize-MonocleBrowser
 
     switch ($Type.ToLowerInvariant()) {
         'ie' {
-            return Initialize-MonocleIEBrowser
+            return Initialize-MonocleIEBrowser -Arguments $Arguments -Hide:$Hide
         }
 
         'chrome' {
-            return Initialize-MonocleChromeBrowser -Hide:$Hide
+            return Initialize-MonocleChromeBrowser -Arguments $Arguments -Hide:$Hide
         }
 
         'firefox' {
-            return Initialize-MonocleFirefoxBrowser -Hide:$Hide
+            return Initialize-MonocleFirefoxBrowser -Arguments $Arguments -Hide:$Hide
         }
 
         default {
@@ -67,14 +71,28 @@ function Initialize-MonocleBrowser
 function Initialize-MonocleIEBrowser
 {
     param(
+        [Parameter()]
+        [string[]]
+        $Arguments,
+
         [switch]
         $Hide
     )
 
     $options = [OpenQA.Selenium.IE.InternetExplorerOptions]::new()
+    if ($null -eq $Arguments) {
+        $Arguments = @()
+    }
+
     $options.RequireWindowFocus = $false
     $options.IgnoreZoomLevel = $true
 
+    # add arguments
+    $Arguments | Sort-Object -Unique | ForEach-Object {
+        $options.AddArguments($_.TrimStart('-'))
+    }
+
+    # create the browser
     $service = [OpenQA.Selenium.IE.InternetExplorerDriverService]::CreateDefaultService((Get-MonocleBrowserPath))
     $service.HideCommandPromptWindow = $true
     $service.SuppressInitialDiagnosticInformation = $true
@@ -85,26 +103,39 @@ function Initialize-MonocleIEBrowser
 function Initialize-MonocleChromeBrowser
 {
     param(
+        [Parameter()]
+        [string[]]
+        $Arguments,
+
         [switch]
         $Hide
     )
 
     $options = [OpenQA.Selenium.Chrome.ChromeOptions]::new()
+    if ($null -eq $Arguments) {
+        $Arguments = @()
+    }
 
     # needed to prevent general issues
-    $options.AddArguments('no-first-run')
-    $options.AddArguments('no-default-browser-check')
-    $options.AddArguments('disable-default-apps')
+    $Arguments += 'no-first-run'
+    $Arguments += 'no-default-browser-check'
+    $Arguments += 'disable-default-apps'
 
     # these are needed to allow running in a container
-    $options.AddArguments('no-sandbox')
-    $options.AddArguments('disable-dev-shm-usage')
+    $Arguments += 'no-sandbox'
+    $Arguments += 'disable-dev-shm-usage'
 
     # hide the browser?
     if ($Hide -or ($env:MONOCLE_HEADLESS -ieq '1')) {
-        $options.AddArguments('headless')
+        $Arguments += 'headless'
     }
 
+    # add arguments
+    $Arguments | Sort-Object -Unique | ForEach-Object {
+        $options.AddArguments($_.TrimStart('-'))
+    }
+
+    # create the browser
     $service = [OpenQA.Selenium.Chrome.ChromeDriverService]::CreateDefaultService((Get-MonocleBrowserPath))
     $service.HideCommandPromptWindow = $true
     $service.SuppressInitialDiagnosticInformation = $true
@@ -115,17 +146,30 @@ function Initialize-MonocleChromeBrowser
 function Initialize-MonocleFirefoxBrowser
 {
     param(
+        [Parameter()]
+        [string[]]
+        $Arguments,
+
         [switch]
         $Hide
     )
 
     $options = [OpenQA.Selenium.Firefox.FirefoxOptions]::new()
+    if ($null -eq $Arguments) {
+        $Arguments = @()
+    }
 
     # hide the browser?
     if ($Hide -or ($env:MONOCLE_HEADLESS -ieq '1')) {
-        $options.AddArguments('-headless')
+        $Arguments += 'headless'
     }
 
+    # add arguments
+    $Arguments | Sort-Object -Unique | ForEach-Object {
+        $options.AddArguments("-$($_.TrimStart('-'))")
+    }
+
+    # create the browser
     $service = [OpenQA.Selenium.Firefox.FirefoxDriverService]::CreateDefaultService((Get-MonocleBrowserPath))
     $service.HideCommandPromptWindow = $true
     $service.SuppressInitialDiagnosticInformation = $true
