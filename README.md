@@ -5,6 +5,14 @@
 
 Monocle is a Cross-Platform PowerShell Web Automation module, made to make automating and testing websites easier. It's a PowerShell wrapper around Selenium, with the aim of abstracting Selenium away from the user.
 
+* [Install](#install)
+* [Example](#example)
+* [Documentation](#documentation)
+  * [Functions](#functions)
+  * [Screenshots](#screenshots)
+  * [Waiting](#waiting)
+  * [Docker](#docker)
+
 Monocle currently supports the following browsers:
 
 * IE
