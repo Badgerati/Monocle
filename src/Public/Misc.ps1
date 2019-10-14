@@ -23,14 +23,7 @@ function Invoke-MonocoleScreenshot
         $Path
     )
 
-    #TODO:
-    $initialVisibleState = $Browser.Visible
-
-    $Browser.Visible = $true
-    $Browser.TheaterMode = $true
-
-    Set-MonocleBrowserFocus
-    Start-MonocleSleepWhileBusy
+    $screenshot = $Browser.GetScreenshot()
 
     if ([string]::IsNullOrWhiteSpace($Path)) {
         $Path = $pwd
@@ -39,18 +32,9 @@ function Invoke-MonocoleScreenshot
     $Name = ($Name -replace ' ', '_')
     $filepath = Join-Path $Path "$($Name).png"
 
-    Add-Type -AssemblyName System.Drawing
-
-    $bitmap = New-Object System.Drawing.Bitmap $Browser.Width, $Browser.Height
-    $graphic = [System.Drawing.Graphics]::FromImage($bitmap)
-    $graphic.CopyFromScreen($Browser.Left, $Browser.Top, 0, 0, $bitmap.Size)
-    $bitmap.Save($filepath)
-
-    $Browser.TheaterMode = $false
-    $Browser.Visible = $initialVisibleState
+    $screenshot.SaveAsFile($filepath, [OpenQA.Selenium.ScreenshotImageFormat]::Png)
 
     Write-MonocleHost -Message "Screenshot saved to: $filepath"
-    Start-MonocleSleepWhileBusy
 
     return $filepath
 }

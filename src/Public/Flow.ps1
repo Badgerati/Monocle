@@ -8,6 +8,10 @@ function New-MonocleBrowser
         [string]
         $Type,
 
+        [Parameter()]
+        [int]
+        $PageTimeout = 30,
+
         [switch]
         $Visible
     )
@@ -17,6 +21,7 @@ function New-MonocleBrowser
         throw 'Failed to create Browser'
     }
 
+    $Browser.Manage().Timeouts().PageLoad = [timespan]::FromSeconds($PageTimeout)
     return $Browser
 }
 
@@ -25,15 +30,20 @@ function Close-MonocleBrowser
     [CmdletBinding()]
     param(
         [Parameter(Mandatory=$true)]
-        [OpenQA.Selenium.Remote.RemoteWebDriver]
+        [OpenQA.Selenium.Remote.RemoteWebDriver[]]
         $Browser
     )
 
-    Write-Verbose 'Closing the Browser'
-    $Browser.Quit() | Out-Null
+    @($Browser) | ForEach-Object {
+        $type = ($_.GetType().Name -ireplace 'Driver', '')
 
-    Write-Verbose 'Disposing the Browser'
-    $Browser.Dispose() | Out-Null
+        Write-Verbose "Closing the $($type) Browser"
+        $_.Quit() | Out-Null
+
+        Write-Verbose "Disposing the $($type) Browser"
+        $_.Dispose() | Out-Null
+    }
+
     $Browser = $null
 }
 
@@ -77,10 +87,9 @@ function Start-MonocleFlow
     }
     catch [exception]
     {
-        #TODO:
         # take a screenshot if enabled
         if ($ScreenshotOnFail) {
-            $screenshotName = ("{0}_{1}" -f $Name, [DateTime]::Now.ToString('yyyy-MM-dd-HH-mm-ss'))
+            $screenshotName = "$($Name)_$([DateTime]::Now.ToString('yyyy-MM-dd-HH-mm-ss'))"
             $sPath = Invoke-MonocoleScreenshot -Name $screenshotName -Path $ScreenshotPath
         }
 

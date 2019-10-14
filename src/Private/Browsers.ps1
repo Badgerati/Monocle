@@ -76,6 +76,15 @@ function Initialize-MonocleChromeBrowser
 
     $options = [OpenQA.Selenium.Chrome.ChromeOptions]::new()
 
+    # these are needed to allow running in a container
+    $options.AddArguments('no-sandbox')
+    $options.AddArguments('disable-dev-shm-usage')
+
+    # hide the browser?
+    if (!$Visible) {
+        $options.AddArguments('headless')
+    }
+
     $browsers = Get-MonocleBrowserPath
     return [OpenQA.Selenium.Chrome.ChromeDriver]::new($browsers, $options)
 }
