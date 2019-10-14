@@ -1,3 +1,42 @@
+function New-MonocleBrowser
+{
+    [CmdletBinding()]
+    [OutputType([OpenQA.Selenium.Remote.RemoteWebDriver])]
+    param(
+        [Parameter(Mandatory=$true)]
+        [ValidateSet('IE', 'Chrome', 'Firefox')]
+        [string]
+        $Type,
+
+        [switch]
+        $Visible
+    )
+
+    $Browser = Initialize-MonocleBrowser -Type $Type -Visible:$Visible
+    if (!$? -or ($null -eq $Browser)) {
+        throw 'Failed to create Browser'
+    }
+
+    return $Browser
+}
+
+function Close-MonocleBrowser
+{
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory=$true)]
+        [OpenQA.Selenium.Remote.RemoteWebDriver]
+        $Browser
+    )
+
+    Write-Verbose 'Closing the Browser'
+    $Browser.Quit() | Out-Null
+
+    Write-Verbose 'Disposing the Browser'
+    $Browser.Dispose() | Out-Null
+    $Browser = $null
+}
+
 function Start-MonocleFlow
 {
     [CmdletBinding()]
@@ -15,27 +54,17 @@ function Start-MonocleFlow
         [string]
         $ScreenshotPath,
 
-        [Parameter()]
-        [ValidateSet('', 'IE', 'Chrome', 'Firefox')]
-        [string]
-        $Type = [string]::Empty,
-
-        [switch]
-        $Visible,
+        [Parameter(Mandatory=$true)]
+        [OpenQA.Selenium.Remote.RemoteWebDriver]
+        $Browser,
 
         [Parameter(ParameterSetName='Screenshot')]
         [switch]
         $ScreenshotOnFail,
 
         [switch]
-        $KeepOpen
+        $CloseBrowser
     )
-
-    # create a new browser
-    $Browser = Initialize-MonocleBrowser -Type $Type -Visible:$Visible
-    if (!$? -or ($null -eq $Browser)) {
-        throw 'Failed to create Browser'
-    }
 
     # set the output depth
     $env:MONOCLE_OUTPUT_DEPTH = '1'
@@ -69,10 +98,8 @@ function Start-MonocleFlow
     finally
     {
         # close the browser
-        if (($null -ne $Browser) -and !$KeepOpen) {
-            $Browser.Quit()
-            $Browser.Dispose()
-            $Browser = $null
+        if ($CloseBrowser) {
+            Close-MonocleBrowser -Browser $Browser
         }
     }
 }

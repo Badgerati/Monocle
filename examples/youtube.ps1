@@ -2,9 +2,12 @@ $path = Split-Path -Parent -Path (Split-Path -Parent -Path $MyInvocation.MyComma
 $path = "$($path)/src/Monocle.psm1"
 Import-Module $path -Force -ErrorAction Stop
 
+# Create a browser object
+$browser = New-MonocleBrowser -Type Firefox
+
 # Monocle runs commands in web flows, for easy disposal and test tracking
 # Each flow needs a name
-Start-MonocleFlow -Name 'Load YouTube' -Type 'Firefox' -ScriptBlock {
+Start-MonocleFlow -Name 'Load YouTube' -Browser $browser -ScriptBlock {
 
     # Tell the browser which URL to navigate to, will sleep while page is loading
     Set-MonocleUrl -Url 'https://www.youtube.com'
@@ -21,7 +24,7 @@ Start-MonocleFlow -Name 'Load YouTube' -Type 'Firefox' -ScriptBlock {
     Wait-MonocleUrl -Url 'https://www.youtube.com/results?search_query=' -StartsWith
 
     # Downloads an image from the page. This time it's using XPath
-    Save-MonocleImage -XPath "//div[@data-context-item-id='SI6Yyr-iI6M']/img[1]" -Path '.\beerus.jpg'
+    #Save-MonocleImage -XPath "//div[@data-context-item-id='SI6Yyr-iI6M']/img[1]" -Path '.\beerus.jpg'
 
     # Tells the browser to click the video in the results. The video link is found via XPath
     Invoke-MonocleElementClick -XPath "//a[@title='Dragon Ball Super Soundtrack - Beerus Madness (Extended)']"
@@ -29,4 +32,7 @@ Start-MonocleFlow -Name 'Load YouTube' -Type 'Firefox' -ScriptBlock {
     # Again, we expect the URL to be loaded
     Wait-MonocleUrl -Url 'https://www.youtube.com/watch?v=SI6Yyr-iI6M'
 
-}
+} -CloseBrowser
+
+# or close the browser manually:
+#Close-MonocleBrowser -Browser $browser
