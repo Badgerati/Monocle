@@ -32,7 +32,7 @@ Start-MonocleFlow -Name 'Load YouTube' -Browser $browser -ScriptBlock {
     # Again, we expect the URL to be loaded
     Wait-MonocleUrl -Url 'https://www.youtube.com/watch?v=SI6Yyr-iI6M'
 
-} -CloseBrowser
+} -CloseBrowser -ScreenshotOnFail
 
 # or close the browser manually:
 #Close-MonocleBrowser -Browser $browser

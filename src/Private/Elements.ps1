@@ -72,7 +72,7 @@ function Get-MonocleElement
         catch {
             $seconds++
 
-            if (!$Wait -and ($seconds -ge $Timeout)) {
+            if (!$Wait -or ($seconds -ge $Timeout)) {
                 throw $_.Exception
             }
 
