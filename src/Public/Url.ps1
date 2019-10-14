@@ -30,18 +30,19 @@ function Set-MonocleUrl
     while ($attempt -le $Attempts) {
         try {
             Write-MonocleHost -Message "Navigating to: $url (Status: $code) [attempt: $($attempt)]"
-            $Browser.Navigate($Url) | Out-Null
+            $Browser.Navigate().GoToUrl($Url) | Out-Null
             Start-MonocleSleepWhileBusy
 
             break
         }
         catch {
             $attempt++
-            Start-Sleep -Seconds 1
 
             if ($attempt -gt $Attempts) {
                 throw $_.Exception
             }
+
+            Start-Sleep -Seconds 1
         }
     }
 }
@@ -52,7 +53,7 @@ function Get-MonocleUrl
     [OutputType([string])]
     param()
 
-    return $Browser.LocationURL
+    return $Browser.Url
 }
 
 function Edit-MonocleUrl
@@ -69,11 +70,9 @@ function Edit-MonocleUrl
 
         [switch]
         $Force
-
-        #TODO: wait
     )
 
-    $Url = $Browser.LocationURL -ireplace $Pattern, $Value
+    $Url = ((Get-MonocleUrl) -ireplace $Pattern, $Value)
     Set-MonocleUrl -Url $Url -Force:$Force
     Start-MonocleSleepWhileBusy
 }
@@ -92,7 +91,7 @@ function Wait-MonocleUrl
 
         [Parameter()]
         [int]
-        $Duration = 10,
+        $Timeout = 10,
 
         [Parameter()]
         [int]
@@ -103,13 +102,13 @@ function Wait-MonocleUrl
         $StartsWith
     )
 
-    # ensure duration and attempts is >=1
+    # ensure timeout and attempts is >=1
     if ($Attempts -le 0) {
         $Attempts = 1
     }
 
-    if ($Duration -le 0) {
-        $Duration = 1
+    if ($Timeout -le 0) {
+        $Timeout = 1
     }
 
     # generic values
@@ -123,9 +122,9 @@ function Wait-MonocleUrl
                 'pattern' {
                     Write-MonocleHost -Message "Waiting for URL to match pattern: $($Pattern) [attempt: $($attempt)]"
 
-                    while ($Browser.LocationURL -inotmatch $Pattern) {
-                        if ($seconds -ge $Duration) {
-                            throw "Expected URL to match pattern: $($Pattern)`nBut got: $($Browser.LocationURL)"
+                    while ((Get-MonocleUrl) -inotmatch $Pattern) {
+                        if ($seconds -ge $Timeout) {
+                            throw "Expected URL to match pattern: $($Pattern)`nBut got: $(Get-MonocleUrl)"
                         }
 
                         $seconds++
@@ -136,9 +135,9 @@ function Wait-MonocleUrl
                 'url' {
                     Write-MonocleHost -Message "Waiting for URL: $($Url) [attempt: $($attempt)]"
 
-                    while ((!$StartsWith -and $Browser.LocationURL -ine $Url) -or ($StartsWith -and !$Browser.LocationURL.StartsWith($Url, [StringComparison]::InvariantCultureIgnoreCase))) {
-                        if ($seconds -ge $Duration) {
-                            throw "Expected URL: $($Url)`nBut got: $($Browser.LocationURL)"
+                    while ((!$StartsWith -and ((Get-MonocleUrl) -ine $Url)) -or ($StartsWith -and !((Get-MonocleUrl).StartsWith($Url, [StringComparison]::InvariantCultureIgnoreCase)))) {
+                        if ($seconds -ge $Timeout) {
+                            throw "Expected URL: $($Url)`nBut got: $(Get-MonocleUrl)"
                         }
 
                         $seconds++
@@ -151,11 +150,12 @@ function Wait-MonocleUrl
         }
         catch {
             $attempt++
-            Start-Sleep -Seconds 1
 
             if ($attempt -gt $Attempts) {
                 throw $_.Exception
             }
+
+            Start-Sleep -Seconds 1
         }
     }
 
@@ -169,26 +169,26 @@ function Wait-MonocleUrlDifferent
     param (
         [Parameter(Mandatory=$true)]
         [string]
-        $CurrentUrl,
+        $FromUrl,
 
         [Parameter()]
         [int]
-        $Duration = 10
+        $Timeout = 10
     )
 
-    # ensure duration >=1
-    if ($Duration -le 0) {
-        $Duration = 1
+    # ensure timeout >=1
+    if ($Timeout -le 0) {
+        $Timeout = 1
     }
 
     # generic values
     $seconds = 0
 
-    Write-MonocleHost -Message "Waiting for URL to change: From $($CurrentUrl)"
+    Write-MonocleHost -Message "Waiting for URL to change from: $($FromUrl)"
 
-    while (($newUrl = Get-MonocleUrl) -ieq $CurrentUrl) {
-        if ($seconds -ge $Duration) {
-            throw "Expected URL to change: From $($CurrentUrl)`nBut got: $($newUrl)"
+    while (($newUrl = Get-MonocleUrl) -ieq $FromUrl) {
+        if ($seconds -ge $Timeout) {
+            throw "Expected URL to change: From $($FromUrl)`nBut got: $($newUrl)"
         }
 
         $seconds++

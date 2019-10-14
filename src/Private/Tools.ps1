@@ -4,9 +4,9 @@ function Start-MonocleSleepWhileBusy
     param ()
 
     $count = 0
-    $timeout = 30
+    $timeout = $Browser.Manage().Timeouts().PageLoad
 
-    while ($Browser.Busy)
+    while ($Browser.ExecuteScript('return document.readyState') -ine 'complete')
     {
         if ($count -ge $timeout) {
             throw "Loading URL has timed-out after $timeout second(s)"
@@ -151,41 +151,4 @@ function Test-MonocleUrl
     }
 
     return $code
-}
-
-function Set-MonocleBrowserFocus
-{
-    [CmdletBinding()]
-    param ()
-
-    try
-    {
-        if (!([System.Management.Automation.PSTypeName]'NativeHelper').Type)
-        {
-            $nativeDef =
-                @"
-                using System;
-                using System.Runtime.InteropServices;
-
-                public static class NativeHelper
-                {
-                    [DllImport("user32.dll")]
-                    [return: MarshalAs(UnmanagedType.Bool)]
-                    private static extern bool SetForegroundWindow(IntPtr hWnd);
-
-                    public static bool SetForeground(IntPtr handle)
-                    {
-                        return NativeHelper.SetForegroundWindow(handle);
-                    }
-                }
-"@
-
-            Add-Type -TypeDefinition $nativeDef
-        }
-
-        [NativeHelper]::SetForeground($Browser.HWND) | Out-Null
-    }
-    catch [exception] {
-        Write-Error -Message 'Failed to bring IE to foreground' -Exception $_.Exception
-    }
 }

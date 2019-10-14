@@ -3,150 +3,137 @@
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/Badgerati/Monocle/master/LICENSE.txt)
 [![PowerShell](https://img.shields.io/powershellgallery/dt/monocle.svg?label=PowerShell&colorB=085298)](https://www.powershellgallery.com/packages/Monocle)
 
-Monocle is a PowerShell Web Automation module, made to make automating and testing websites easier.
+Monocle is a Cross-Platform PowerShell Web Automation module, made to make automating and testing websites easier. It's a PowerShell wrapper around Selenium, with the aim of abstracting Selenium away from the user.
+
+* [Install](#install)
+* [Example](#example)
+* [Documentation](#documentation)
+  * [Functions](#functions)
+  * [Screenshots](#screenshots)
+  * [Waiting](#waiting)
+  * [Docker](#docker)
+
+Monocle currently supports the following browsers:
+
+* IE
+* Google Chrome
+* Firefox
 
 ## Install
 
 ```powershell
 Install-Module -Name Monocle
-Import-Module -Name Monocle
 ```
 
 ## Example
 
 ```powershell
-# if you didn't install globally, then import like so:
-$root = Split-Path -Path (Split-Path -Path $MyInvocation.MyCommand.Path)
-Import-Module "$root\Monocle.psm1" -DisableNameChecking -ErrorAction Stop
-
-# if you did import globally:
 Import-Module Monocle
 
-# Monocle runs commands in web flows, for easy disposal and test tracking
-# Each browser needs a name
-Start-MonocleFlow -Name 'Load YouTube' -ScriptBlock {
+# create a browser
+$browser = New-MonocleBrowser -Type Chrome
 
-    # Tell the browser which URL to navigate to, will sleep while page is loading
+# Monocle runs commands in web flows, for easy disposal and test tracking
+Start-MonocleFlow -Name 'Load YouTube' -Browser $browser -ScriptBlock {
+
+    # tell the browser which URL to navigate to, will wait for the page to load
     Set-MonocleUrl -Url 'https://www.youtube.com'
 
-    # Sets the search bar element to the passed value to query
+    # sets the element's value, selecting the element by ID/Name
     Set-MonocleElementValue -Id 'search_query' -Value 'Beerus Madness (Extended)'
 
-    # Tells the browser to click the search button
+    # click the search button
     Invoke-MonocleElementClick -Id 'search-btn'
 
-    # Though all commands sleep when the page is busy, some buttons use javascript
-    # to reform the page. The following will sleep the browser until the passed URL is loaded.
-    # If (default) 10 seconds passes and no URL, then the flow fails
+    # wait for the URL to change to start with the following value
     Wait-MonocleUrl -Url 'https://www.youtube.com/results?search_query=' -StartsWith
 
-    # Downloads an image from the page. This time it's using something called MPath (Monocle Path).
-    # It's very similar to XPath, and allows you to pin-point elements more easily
-    Save-MonocleImage -MPath 'div[@data-context-item-id=SI6Yyr-iI6M]/img[0]' -Path '.\beerus.jpg'
+    # downloads an image from the page, selcted by using an XPath to an element
+    Save-MonocleImage -XPath "//div[@data-context-item-id='SI6Yyr-iI6M']/img[1]" -Path '.\beerus.jpg'
 
-    # Tells the browser to click the video in the results. The video link is found via MPath
-    Invoke-MonocleElementClick -MPath 'a[@title=Dragon Ball Super Soundtrack - Beerus Madness (Extended)  - Duration: 10:00.]'
+    # tells the browser to click the video in the results
+    Invoke-MonocleElementClick -XPath "//a[@title='Dragon Ball Super Soundtrack - Beerus Madness (Extended)']"
 
-    # Again, we expect the URL to be loaded
+    # wait for the URL to be loaded
     Wait-MonocleUrl -Url 'https://www.youtube.com/watch?v=SI6Yyr-iI6M'
 
-} -Visible -ScreenshotOnFail
+}
+
+# dispose the browser
+Close-MonocleBrowser -Browser $browser
 ```
 
 ## Documentation
 
 ### Functions
 
-The following is a list of available functions in Monocle. These can be used, after calling `Import-Module -Name Monocle`.
-
-* Invoke-MonocleElementCheck
-* Invoke-MonocleElementClick
-* Save-MonocleImage
-* Wait-MonocleElement
-* Wait-MonocleUrl
-* Wait-MonocleValue
-* Get-MonocleElementValue
-* Start-MonocleFlow
-* Edit-MonocleUrl
-* Set-MonocleUrl
-* Invoke-MonocoleScreenshot
-* Set-MonocleElementValue
-* Start-MonocleSleep
-* Restart-MonocleBrowser
-* Get-MonocleUrl
-* Test-MonocleElement
-
-The following is a list of assertions available in Monocle:
+The following is a list of available functions in Monocle:
 
 * Assert-MonocleBodyValue
 * Assert-MonocleElementValue
+* Close-MonocleBrowser
+* Edit-MonocleUrl
+* Get-MonocleElementValue
+* Get-MonocleHtml
+* Get-MonocleUrl
+* Invoke-MonocleElementCheck
+* Invoke-MonocleElementClick
+* Invoke-MonocleRetryScript
+* Invoke-MonocleScreenshot
+* New-MonocleBrowser
+* Restart-MonocleBrowser
+* Save-MonocleImage
+* Set-MonocleElementValue
+* Set-MonocleUrl
+* Start-MonocleFlow
+* Start-MonocleSleep
+* Submit-MonocleForm
+* Test-MonocleElement
+* Wait-MonocleElement
+* Wait-MonocleUrl
+* Wait-MonocleUrlDifferent
+* Wait-MonocleValue
 
-### MPath
+### Screenshots
 
-MPath, or Monocle Path, is very similar to XPath and allows you to pin-point elements more easily.
-You find elements initially by tag, and then optionally by zero-based index or attribute.
+There are two main ways to take a screenshot of the browser. The first it to tell Monocle to automatically take a screenshot whenever a flow fails. You can do this by using the `-ScreenshotPath` and `-ScreenshotOnFail` parameters on the `Start-MonocleFlow` function:
 
-For example, take the following HTML:
-
-```html
-<html>
-    <head>
-        <title>Example</title>
-    </head>
-    <body>
-        <form method='post' action='/example'>
-            <input type='text' id='SomeInput' />
-            <input type='text' data-type='test' />
-            <input type='text' data-type='test' />
-            <input type='submit' />
-        </form>
-    </body>
-</html>
+```powershell
+Start-MonocleFlow -Name '<name>' -Browser $browser -ScriptBlock {
+    # failing logic
+} -ScreenshotPath './path' -ScreenshotOnFail
 ```
 
-Here we have a very basic form with 3 textual inputs and a submit button.
+Or, you can take a screenshot directly:
 
-Let's say we want to update the value of the first textual input, the one with an ID of `SomeInput`. The MPath to select this element would be:
-
-```plain
-form/input[@id=SomeInput]
+```powershell
+Invoke-MonocoleScreenshot -Name 'screenshot.png' -Path './path'
 ```
 
-In MPath, each query for an element is split by a slash (/). Each query starts with a tag name (form or input), followed optionally by square-brackets and a filter ([@id=SomeInput]).
-Splitting down on the above MPath, Monocle will first find all `form` elements on the page. Then, it will find all input elements within those forms that have an `id` of `SomeInput`.
+> Not supplying `-ScreenshotPath` or `-Path` will default to the current path.
 
-We can also simplify the above MPath to merely just:
+### Waiting
 
-```plain
-input[@id=SomeInput]
+There are inbuilt function to wait for a URL or element. However, to wait for an element during a Set/Click call you can use the `-Wait` switch:
+
+```powershell
+Invoke-MonocleElementClick -Id 'element-id' -Wait
 ```
 
-Since Monocle only interacts with single elements, then once all queries have run the top first 1 element from the whole MPath is returned.
+### Docker
 
-Let's now say we only want to update the value of the third textual input. Well, this one doesn't have an identifiers, so the MPath looks as follows:
+Monocle has an offical Docker image, which comes preloaded with:
 
-```plain
-form/input[2]
+* Monocle (obviously!)
+* Firefox
+* Google Chrome
+
+You can use this image to run your Monocle flows - and they will also automatically run headless.
+
+An example `Dockerfile` could be:
+
+```dockerfile
+FROM badgerati/monocle:latest
+COPY . /usr/src/scripts
+CMD [ "pwsh", "-c", "cd /usr/src/scripts; ./flow.ps1" ]
 ```
-
-MPath is zero-based, so `input[2]` will select the third element in the form. Note, if you have two forms on your page, either use `form[0]` or `form[1]` else `input[2]` will literally return the third input in total.
-If we just left the above as `form/input` then the input with ID of SomeInput will have been returned.
-
-A more complex way of selecting the third input will be as follows:
-
-```plain
-form/input[@data-type=test][1]
-```
-
-Now, we will select the two inputs that have their `data-type` set to `test`, and then we will select the second of these inputs.
-
-## FAQ
-
-* I keep receiving the error:
-
-   ```plain
-   Creating an instance of the COM component with CLSID {0002DF01-0000-0000-C000-000000000046} from the IClassFactory 
-   failed due to the following error: 800704a6 A system shutdown has already been scheduled. (Exception from HRESULT: 0x800704A6).
-   ```
-
-   Solution: Open IE, open setting the Compatability Viewing. Uncheck the two check boxes.
