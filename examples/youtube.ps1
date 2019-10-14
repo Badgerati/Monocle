@@ -1,10 +1,14 @@
-$path = Split-Path -Parent -Path (Split-Path -Parent -Path $MyInvocation.MyCommand.Path)
-$path = "$($path)/src/Monocle.psm1"
-Import-Module $path -Force -ErrorAction Stop
+#$path = Split-Path -Parent -Path (Split-Path -Parent -Path $MyInvocation.MyCommand.Path)
+#$path = "$($path)/src/Monocle.psm1"
+#Import-Module $path -Force -ErrorAction Stop
+Import-Module -Name Monocle -Force -ErrorAction Stop
+
+# Create a browser object
+$browser = New-MonocleBrowser -Type Chrome
 
 # Monocle runs commands in web flows, for easy disposal and test tracking
 # Each flow needs a name
-Start-MonocleFlow -Name 'Load YouTube' -ScriptBlock {
+Start-MonocleFlow -Name 'Load YouTube' -Browser $browser -ScriptBlock {
 
     # Tell the browser which URL to navigate to, will sleep while page is loading
     Set-MonocleUrl -Url 'https://www.youtube.com'
@@ -13,21 +17,23 @@ Start-MonocleFlow -Name 'Load YouTube' -ScriptBlock {
     Set-MonocleElementValue -Id 'search_query' -Value 'Beerus Madness (Extended)'
 
     # Tells the browser to click the search button
-    Invoke-MonocleElementClick -Id 'search-btn'
+    Invoke-MonocleElementClick -Id 'search-icon-legacy'
 
     # Though all commands sleep when the page is busy, some buttons use javascript
     # to reform the page. The following will sleep the browser until the passed URL is loaded.
     # If (default) 10 seconds passes and no URL, then the flow fails
     Wait-MonocleUrl -Url 'https://www.youtube.com/results?search_query=' -StartsWith
 
-    # Downloads an image from the page. This time it's using something called MPath (Monocle Path).
-    # It's very similar to XPath, and allows you to pin-point elements more easily
-    Save-MonocleImage -MPath 'div[@data-context-item-id=SI6Yyr-iI6M]/img[0]' -Path '.\beerus.jpg'
+    # Downloads an image from the page. This time it's using XPath
+    #Save-MonocleImage -XPath "//div[@data-context-item-id='SI6Yyr-iI6M']/img[1]" -Path '.\beerus.jpg'
 
-    # Tells the browser to click the video in the results. The video link is found via MPath
-    Invoke-MonocleElementClick -MPath 'a[@title=Dragon Ball Super Soundtrack - Beerus Madness (Extended)  - Duration: 10:00.]'
+    # Tells the browser to click the video in the results. The video link is found via XPath
+    Invoke-MonocleElementClick -XPath "//a[@title='Dragon Ball Super Soundtrack - Beerus Madness (Extended)']" -Wait
 
     # Again, we expect the URL to be loaded
     Wait-MonocleUrl -Url 'https://www.youtube.com/watch?v=SI6Yyr-iI6M'
 
-} -Visible -ScreenshotOnFail
+} -CloseBrowser -ScreenshotOnFail
+
+# or close the browser manually:
+#Close-MonocleBrowser -Browser $browser

@@ -1,3 +1,56 @@
+function New-MonocleBrowser
+{
+    [CmdletBinding()]
+    [OutputType([OpenQA.Selenium.Remote.RemoteWebDriver])]
+    param(
+        [Parameter(Mandatory=$true)]
+        [ValidateSet('IE', 'Chrome', 'Firefox')]
+        [string]
+        $Type,
+
+        [Parameter()]
+        [int]
+        $PageTimeout = 30,
+
+        [Parameter()]
+        [string[]]
+        $Arguments,
+
+        [switch]
+        $Hide
+    )
+
+    $Browser = Initialize-MonocleBrowser -Type $Type -Arguments $Arguments -Hide:$Hide
+    if (!$? -or ($null -eq $Browser)) {
+        throw 'Failed to create Browser'
+    }
+
+    $Browser.Manage().Timeouts().PageLoad = [timespan]::FromSeconds($PageTimeout)
+    return $Browser
+}
+
+function Close-MonocleBrowser
+{
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory=$true)]
+        [OpenQA.Selenium.Remote.RemoteWebDriver[]]
+        $Browser
+    )
+
+    @($Browser) | ForEach-Object {
+        $type = ($_.GetType().Name -ireplace 'Driver', '')
+
+        Write-Verbose "Closing the $($type) Browser"
+        $_.Quit() | Out-Null
+
+        Write-Verbose "Disposing the $($type) Browser"
+        $_.Dispose() | Out-Null
+    }
+
+    $Browser = $null
+}
+
 function Start-MonocleFlow
 {
     [CmdletBinding()]
@@ -15,25 +68,17 @@ function Start-MonocleFlow
         [string]
         $ScreenshotPath,
 
-        [switch]
-        $Visible,
+        [Parameter(Mandatory=$true)]
+        [OpenQA.Selenium.Remote.RemoteWebDriver]
+        $Browser,
 
         [Parameter(ParameterSetName='Screenshot')]
         [switch]
         $ScreenshotOnFail,
 
         [switch]
-        $KeepOpen
+        $CloseBrowser
     )
-
-    # create a new browser
-    $Browser = New-Object -ComObject InternetExplorer.Application
-    if (!$? -or ($null -eq $Browser)) {
-        throw 'Failed to create Browser for IE'
-    }
-
-    $Browser.Visible = [bool]$Visible
-    $Browser.TheaterMode = $false
 
     # set the output depth
     $env:MONOCLE_OUTPUT_DEPTH = '1'
@@ -48,8 +93,8 @@ function Start-MonocleFlow
     {
         # take a screenshot if enabled
         if ($ScreenshotOnFail) {
-            $screenshotName = ("{0}_{1}" -f $Name, [DateTime]::Now.ToString('yyyy-MM-dd-HH-mm-ss'))
-            $sPath = Invoke-MonocoleScreenshot -Name $screenshotName -Path $ScreenshotPath
+            $screenshotName = "$($Name)_$([DateTime]::Now.ToString('yyyy-MM-dd-HH-mm-ss'))"
+            $sPath = Invoke-MonocleScreenshot -Name $screenshotName -Path $ScreenshotPath
         }
 
         try {
@@ -66,9 +111,8 @@ function Start-MonocleFlow
     finally
     {
         # close the browser
-        if (($null -ne $Browser) -and !$KeepOpen) {
-            $Browser.Quit()
-            $Browser = $null
+        if ($CloseBrowser) {
+            Close-MonocleBrowser -Browser $Browser
         }
     }
 }

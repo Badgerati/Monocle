@@ -10,7 +10,7 @@ function Assert-MonocleBodyValue
         $Not
     )
 
-    $body = $Browser.Document.body.outerHTML
+    $body = $Browser.PageSource
 
     if ($Not) {
         if ($body -imatch $ExpectedValue) {
@@ -48,9 +48,9 @@ function Assert-MonocleElementValue
         [string]
         $ElementValue,
 
-        [Parameter(ParameterSetName='MPath')]
+        [Parameter(ParameterSetName='XPath')]
         [string]
-        $MPath
+        $XPath
     )
 
     $value = Get-MonocleElementValue `
@@ -60,7 +60,7 @@ function Assert-MonocleElementValue
         -AttributeName $AttributeName `
         -AttributeValue $AttributeValue `
         -ElementValue $ElementValue `
-        -MPath $MPath
+        -XPath $XPath
 
     if ($value -ine $ExpectedValue)
     {
@@ -71,7 +71,7 @@ function Assert-MonocleElementValue
             -AttributeName $AttributeName `
             -AttributeValue $AttributeValue `
             -ElementValue $ElementValue `
-            -MPath $MPath `
+            -XPath $XPath `
             -UseInnerHtml
 
         if ($innerHtml -ine $ExpectedValue) {
