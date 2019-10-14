@@ -13,7 +13,7 @@ Start-MonocleFlow -Name 'Load YouTube' -Browser $browser -ScriptBlock {
     Set-MonocleUrl -Url 'https://www.youtube.com'
 
     # Sets the search bar element to the passed value to query
-    <#Set-MonocleElementValue -Id 'search_query' -Value 'Beerus Madness (Extended)'
+    Set-MonocleElementValue -Id 'search_query' -Value 'Beerus Madness (Extended)'
 
     # Tells the browser to click the search button
     Invoke-MonocleElementClick -Id 'search-icon-legacy'
@@ -27,10 +27,10 @@ Start-MonocleFlow -Name 'Load YouTube' -Browser $browser -ScriptBlock {
     #Save-MonocleImage -XPath "//div[@data-context-item-id='SI6Yyr-iI6M']/img[1]" -Path '.\beerus.jpg'
 
     # Tells the browser to click the video in the results. The video link is found via XPath
-    Invoke-MonocleElementClick -XPath "//a[@title='Dragon Ball Super Soundtrack - Beerus Madness (Extended)']"
+    Invoke-MonocleElementClick -XPath "//a[@title='Dragon Ball Super Soundtrack - Beerus Madness (Extended)']" -Wait
 
     # Again, we expect the URL to be loaded
-    Wait-MonocleUrl -Url 'https://www.youtube.com/watch?v=SI6Yyr-iI6M'#>
+    Wait-MonocleUrl -Url 'https://www.youtube.com/watch?v=SI6Yyr-iI6M'
 
 } -CloseBrowser
 

@@ -37,11 +37,12 @@ function Set-MonocleUrl
         }
         catch {
             $attempt++
-            Start-Sleep -Seconds 1
 
             if ($attempt -gt $Attempts) {
                 throw $_.Exception
             }
+
+            Start-Sleep -Seconds 1
         }
     }
 }
@@ -90,7 +91,7 @@ function Wait-MonocleUrl
 
         [Parameter()]
         [int]
-        $Duration = 10,
+        $Timeout = 10,
 
         [Parameter()]
         [int]
@@ -101,13 +102,13 @@ function Wait-MonocleUrl
         $StartsWith
     )
 
-    # ensure duration and attempts is >=1
+    # ensure timeout and attempts is >=1
     if ($Attempts -le 0) {
         $Attempts = 1
     }
 
-    if ($Duration -le 0) {
-        $Duration = 1
+    if ($Timeout -le 0) {
+        $Timeout = 1
     }
 
     # generic values
@@ -122,7 +123,7 @@ function Wait-MonocleUrl
                     Write-MonocleHost -Message "Waiting for URL to match pattern: $($Pattern) [attempt: $($attempt)]"
 
                     while ((Get-MonocleUrl) -inotmatch $Pattern) {
-                        if ($seconds -ge $Duration) {
+                        if ($seconds -ge $Timeout) {
                             throw "Expected URL to match pattern: $($Pattern)`nBut got: $(Get-MonocleUrl)"
                         }
 
@@ -135,7 +136,7 @@ function Wait-MonocleUrl
                     Write-MonocleHost -Message "Waiting for URL: $($Url) [attempt: $($attempt)]"
 
                     while ((!$StartsWith -and ((Get-MonocleUrl) -ine $Url)) -or ($StartsWith -and !((Get-MonocleUrl).StartsWith($Url, [StringComparison]::InvariantCultureIgnoreCase)))) {
-                        if ($seconds -ge $Duration) {
+                        if ($seconds -ge $Timeout) {
                             throw "Expected URL: $($Url)`nBut got: $(Get-MonocleUrl)"
                         }
 
@@ -149,11 +150,12 @@ function Wait-MonocleUrl
         }
         catch {
             $attempt++
-            Start-Sleep -Seconds 1
 
             if ($attempt -gt $Attempts) {
                 throw $_.Exception
             }
+
+            Start-Sleep -Seconds 1
         }
     }
 
@@ -171,12 +173,12 @@ function Wait-MonocleUrlDifferent
 
         [Parameter()]
         [int]
-        $Duration = 10
+        $Timeout = 10
     )
 
-    # ensure duration >=1
-    if ($Duration -le 0) {
-        $Duration = 1
+    # ensure timeout >=1
+    if ($Timeout -le 0) {
+        $Timeout = 1
     }
 
     # generic values
@@ -185,7 +187,7 @@ function Wait-MonocleUrlDifferent
     Write-MonocleHost -Message "Waiting for URL to change: From $($CurrentUrl)"
 
     while (($newUrl = Get-MonocleUrl) -ieq $CurrentUrl) {
-        if ($seconds -ge $Duration) {
+        if ($seconds -ge $Timeout) {
             throw "Expected URL to change: From $($CurrentUrl)`nBut got: $($newUrl)"
         }
 

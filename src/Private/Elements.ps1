@@ -31,26 +31,52 @@ function Get-MonocleElement
         [string]
         $XPath,
 
+        [Parameter()]
+        [int]
+        $Timeout,
+
         [switch]
-        $NoThrow
+        $NoThrow,
+
+        [switch]
+        $Wait
     )
 
-    switch ($FilterType.ToLowerInvariant()) {
-        'id' {
-            return (Get-MonocleElementById -Id $Id -NoThrow:$NoThrow)
-        }
+    if ($Timeout -le 0) {
+        $Timeout = 10
+    }
 
-        'tag' {
-            if ([string]::IsNullOrWhiteSpace($AttributeName)) {
-                return (Get-MonocleElementByTagName -TagName $TagName -ElementValue $ElementValue -NoThrow:$NoThrow)
-            }
-            else {
-                return (Get-MonocleElementByTagName -TagName $TagName -AttributeName $AttributeName -AttributeValue $AttributeValue -ElementValue $ElementValue -NoThrow:$NoThrow)
+    $seconds = 0
+
+    while ($true) {
+        try {
+            switch ($FilterType.ToLowerInvariant()) {
+                'id' {
+                    return (Get-MonocleElementById -Id $Id -NoThrow:$NoThrow)
+                }
+
+                'tag' {
+                    if ([string]::IsNullOrWhiteSpace($AttributeName)) {
+                        return (Get-MonocleElementByTagName -TagName $TagName -ElementValue $ElementValue -NoThrow:$NoThrow)
+                    }
+                    else {
+                        return (Get-MonocleElementByTagName -TagName $TagName -AttributeName $AttributeName -AttributeValue $AttributeValue -ElementValue $ElementValue -NoThrow:$NoThrow)
+                    }
+                }
+
+                'xpath' {
+                    return (Get-MonocleElementByXPath -XPath $XPath -NoThrow:$NoThrow)
+                }
             }
         }
+        catch {
+            $seconds++
 
-        'xpath' {
-            return (Get-MonocleElementByXPath -XPath $XPath -NoThrow:$NoThrow)
+            if (!$Wait -and ($seconds -ge $Timeout)) {
+                throw $_.Exception
+            }
+
+            Start-Sleep -Seconds 1
         }
     }
 }

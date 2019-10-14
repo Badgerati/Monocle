@@ -30,6 +30,13 @@ function Set-MonocleElementValue
         [string]
         $XPath,
 
+        [Parameter()]
+        [int]
+        $Timeout = 10,
+
+        [switch]
+        $Wait,
+
         [switch]
         $Mask
     )
@@ -42,7 +49,9 @@ function Set-MonocleElementValue
         -AttributeName $AttributeName `
         -AttributeValue $AttributeValue `
         -ElementValue $ElementValue `
-        -XPath $XPath
+        -XPath $XPath `
+        -Timeout $Timeout `
+        -Wait:$Wait
 
     if ($Mask) {
         Write-MonocleHost -Message "Setting $($result.Id) element value to: ********"
@@ -89,7 +98,14 @@ function Get-MonocleElementValue
 
         [Parameter(ParameterSetName='XPath')]
         [string]
-        $XPath
+        $XPath,
+
+        [Parameter()]
+        [int]
+        $Timeout = 10,
+
+        [switch]
+        $Wait
     )
 
     $result = Get-MonocleElement `
@@ -99,7 +115,9 @@ function Get-MonocleElementValue
         -AttributeName $AttributeName `
         -AttributeValue $AttributeValue `
         -ElementValue $ElementValue `
-        -XPath $XPath
+        -XPath $XPath `
+        -Timeout $Timeout `
+        -Wait:$Wait
 
     # get the value of the element, if it's a select element, get the appropriate option where option is selected
     if (($result.Element.Length -gt 1) -and ($result.Element[0].TagName -ieq 'option')) {
@@ -303,7 +321,10 @@ function Invoke-MonocleElementClick
 
         [Parameter()]
         [int]
-        $Duration = 10,
+        $Timeout = 10,
+
+        [switch]
+        $Wait,
 
         [switch]
         $WaitUrl
@@ -317,7 +338,9 @@ function Invoke-MonocleElementClick
         -AttributeName $AttributeName `
         -AttributeValue $AttributeValue `
         -ElementValue $ElementValue `
-        -XPath $XPath
+        -XPath $XPath `
+        -Timeout $Timeout `
+        -Wait:$Wait `
 
     Write-MonocleHost -Message "Clicking element: $($result.Id)"
 
@@ -327,7 +350,7 @@ function Invoke-MonocleElementClick
 
     # check if we should wait until the url is different
     if ($WaitUrl) {
-        Wait-MonocleUrlDifferent -CurrentUrl $url -Duration $Duration
+        Wait-MonocleUrlDifferent -CurrentUrl $url -Timeout $Timeout
     }
 }
 
@@ -359,6 +382,13 @@ function Invoke-MonocleElementCheck
         [string]
         $XPath,
 
+        [Parameter()]
+        [int]
+        $Timeout = 10,
+
+        [switch]
+        $Wait,
+
         [switch]
         $Uncheck
     )
@@ -371,7 +401,9 @@ function Invoke-MonocleElementCheck
         -AttributeName $AttributeName `
         -AttributeValue $AttributeValue `
         -ElementValue $ElementValue `
-        -XPath $XPath
+        -XPath $XPath `
+        -Timeout $Timeout `
+        -Wait:$Wait
 
     if ($Uncheck) {
         Write-MonocleHost -Message "Unchecking element: $($result.Id)"

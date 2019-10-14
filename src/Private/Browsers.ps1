@@ -35,7 +35,7 @@ function Initialize-MonocleBrowser
         $Type,
 
         [switch]
-        $Visible
+        $Hide
     )
 
     if ([string]::IsNullOrWhiteSpace($Type)) {
@@ -51,11 +51,11 @@ function Initialize-MonocleBrowser
         }
 
         'chrome' {
-            return Initialize-MonocleChromeBrowser -Visible:$Visible
+            return Initialize-MonocleChromeBrowser -Hide:$Hide
         }
 
         'firefox' {
-            return Initialize-MonocleFirefoxBrowser -Visible:$Visible
+            return Initialize-MonocleFirefoxBrowser -Hide:$Hide
         }
 
         default {
@@ -68,7 +68,7 @@ function Initialize-MonocleIEBrowser
 {
     param(
         [switch]
-        $Visible
+        $Hide
     )
 
     $options = [OpenQA.Selenium.IE.InternetExplorerOptions]::new()
@@ -85,7 +85,7 @@ function Initialize-MonocleChromeBrowser
 {
     param(
         [switch]
-        $Visible
+        $Hide
     )
 
     $options = [OpenQA.Selenium.Chrome.ChromeOptions]::new()
@@ -100,7 +100,7 @@ function Initialize-MonocleChromeBrowser
     $options.AddArguments('disable-dev-shm-usage')
 
     # hide the browser?
-    if (!$Visible) {
+    if ($Hide) {
         $options.AddArguments('headless')
     }
 
@@ -114,7 +114,7 @@ function Initialize-MonocleFirefoxBrowser
 {
     param(
         [switch]
-        $Visible
+        $Hide
     )
 
     $options = [OpenQA.Selenium.Firefox.FirefoxOptions]::new()

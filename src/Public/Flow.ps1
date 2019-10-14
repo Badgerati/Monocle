@@ -13,10 +13,10 @@ function New-MonocleBrowser
         $PageTimeout = 30,
 
         [switch]
-        $Visible
+        $Hide
     )
 
-    $Browser = Initialize-MonocleBrowser -Type $Type -Visible:$Visible
+    $Browser = Initialize-MonocleBrowser -Type $Type -Hide:$Hide
     if (!$? -or ($null -eq $Browser)) {
         throw 'Failed to create Browser'
     }
