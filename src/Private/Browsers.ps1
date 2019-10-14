@@ -64,7 +64,7 @@ function Initialize-MonocleIEBrowser
     $options.IgnoreZoomLevel = $true
 
     $browsers = Get-MonocleBrowserPath
-    return [OpenQA.Selenium.IE.InternetExplorerDriver]::new($browsers, $options)
+    return [OpenQA.Selenium.IE.InternetExplorerDriver]::new((Join-Path $browsers 'IEDriverServer.exe'), $options)
 }
 
 function Initialize-MonocleChromeBrowser
@@ -86,7 +86,7 @@ function Initialize-MonocleChromeBrowser
     }
 
     $browsers = Get-MonocleBrowserPath
-    return [OpenQA.Selenium.Chrome.ChromeDriver]::new($browsers, $options)
+    return [OpenQA.Selenium.Chrome.ChromeDriver]::new((Join-Path $browsers 'chromedriver*' -Resolve), $options)
 }
 
 function Initialize-MonocleFirefoxBrowser
@@ -99,5 +99,5 @@ function Initialize-MonocleFirefoxBrowser
     $options = [OpenQA.Selenium.Firefox.FirefoxOptions]::new()
 
     $browsers = Get-MonocleBrowserPath
-    return [OpenQA.Selenium.Firefox.FirefoxDriver]::new($browsers, $options)
+    return [OpenQA.Selenium.Firefox.FirefoxDriver]::new((Join-Path $browsers 'geckodriver*' -Resolve), $options)
 }
