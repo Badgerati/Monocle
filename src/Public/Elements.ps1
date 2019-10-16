@@ -1,41 +1,14 @@
 function Set-MonocleElementValue
 {
-    [CmdletBinding(DefaultParameterSetName='Id')]
+    [CmdletBinding()]
     param (
-        [Parameter(Mandatory=$true, ParameterSetName='Id')]
-        [string]
-        $Id,
+        [Parameter(Mandatory=$true, ValueFromPipeline=$true)]
+        [OpenQA.Selenium.IWebElement]
+        $Element,
 
         [Parameter(Mandatory=$true)]
         [string]
         $Value,
-
-        [Parameter(Mandatory=$true, ParameterSetName='Tag')]
-        [string]
-        $TagName,
-
-        [Parameter(ParameterSetName='Tag')]
-        [string]
-        $AttributeName,
-
-        [Parameter(ParameterSetName='Tag')]
-        [string]
-        $AttributeValue,
-
-        [Parameter(ParameterSetName='Tag')]
-        [string]
-        $ElementValue,
-
-        [Parameter(ParameterSetName='XPath')]
-        [string]
-        $XPath,
-
-        [Parameter()]
-        [int]
-        $Timeout = 10,
-
-        [switch]
-        $Wait,
 
         [switch]
         $Mask,
@@ -44,155 +17,152 @@ function Set-MonocleElementValue
         $NoClear
     )
 
-    # Attempt to retrieve an appropriate element
-    $result = Get-MonocleElement `
-        -FilterType $PSCmdlet.ParameterSetName `
-        -Id $Id `
-        -TagName $TagName `
-        -AttributeName $AttributeName `
-        -AttributeValue $AttributeValue `
-        -ElementValue $ElementValue `
-        -XPath $XPath `
-        -Timeout $Timeout `
-        -Wait:$Wait
+    # get the meta id of the element
+    $id = Get-MonocleElementId -Element $Element
 
     if ($Mask) {
-        Write-MonocleHost -Message "Setting $($result.Id) element value to: ********"
+        Write-MonocleHost -Message "Setting $($id) element value to: ********"
     }
     else {
-        Write-MonocleHost -Message "Setting $($result.Id) element value to: $Value"
+        Write-MonocleHost -Message "Setting $($id) element value to: $Value"
     }
 
-    # Set the value of the element, if it's a select element, set the appropriate option with value to be selected
-    if ($result.Element.Length -gt 1 -and $result.Element[0].TagName -ieq 'option') {
-        $element = ($result.Element | Where-Object { $_.Text -ieq $Value })
-        $element.Click() | Out-Null
+    # set the value of the element
+    if (!$NoClear) {
+        $Element.Clear()
     }
-    else {
-        if (!$NoClear) {
-            $result.Element.Clear()
-        }
 
-        $result.Element.SendKeys($Value)
+    $Element.SendKeys($Value)
+}
+
+function Clear-MonocleElementValue
+{
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true, ValueFromPipeline=$true)]
+        [OpenQA.Selenium.IWebElement]
+        $Element
+    )
+
+    # get the meta id of the element
+    $id = Get-MonocleElementId -Element $Element
+    Write-MonocleHost -Message "Clearing $($id) element value"
+
+    # clear the value of the element
+    $Element.Clear()
+}
+
+function Get-MonocleElementAttribute
+{
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true, ValueFromPipeline=$true)]
+        [OpenQA.Selenium.IWebElement]
+        $Element,
+
+        [Parameter(Mandatory=$true)]
+        [string]
+        $Name
+    )
+
+    return $Element.GetAttribute($Name)
+}
+
+function Test-MonocleElementAttribute
+{
+    [CmdletBinding()]
+    [OutputType([bool])]
+    param (
+        [Parameter(Mandatory=$true, ValueFromPipeline=$true)]
+        [OpenQA.Selenium.IWebElement]
+        $Element,
+
+        [Parameter(Mandatory=$true)]
+        [string]
+        $Name
+    )
+
+    try {
+        return ($null -ne (Get-MonocleElementAttribute -Element $Element -Name $Name))
     }
+    catch {
+        return $false
+    }
+}
+
+function Set-MonocleElementAttribute
+{
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true, ValueFromPipeline=$true)]
+        [OpenQA.Selenium.IWebElement]
+        $Element,
+
+        [Parameter(Mandatory=$true)]
+        [string]
+        $Name,
+
+        [Parameter(Mandatory=$true)]
+        [string]
+        $Value
+    )
+
+    Invoke-MonocleJavaScript -Script 'arguments[0].setAttribute(arguments[1], arguments[2])' -Arguments $Element, $Name, $Value | Out-Null
 }
 
 function Submit-MonocleForm
 {
-    [CmdletBinding(DefaultParameterSetName='Id')]
-    [OutputType([string])]
+    [CmdletBinding()]
     param (
-        [Parameter(Mandatory=$true, ParameterSetName='Id')]
-        [string]
-        $Id,
-
-        [Parameter(Mandatory=$true, ParameterSetName='Tag')]
-        [string]
-        $TagName,
-
-        [Parameter(ParameterSetName='Tag')]
-        [string]
-        $AttributeName,
-
-        [Parameter(ParameterSetName='Tag')]
-        [string]
-        $AttributeValue,
-
-        [Parameter(ParameterSetName='Tag')]
-        [string]
-        $ElementValue,
-
-        [Parameter(ParameterSetName='XPath')]
-        [string]
-        $XPath,
-
-        [Parameter()]
-        [int]
-        $Timeout = 10,
-
-        [switch]
-        $Wait,
+        [Parameter(Mandatory=$true, ValueFromPipeline=$true)]
+        [OpenQA.Selenium.IWebElement]
+        $Element,
 
         [switch]
         $WaitUrl
     )
 
-    $result = Get-MonocleElement `
-        -FilterType $PSCmdlet.ParameterSetName `
-        -Id $Id `
-        -TagName $TagName `
-        -AttributeName $AttributeName `
-        -AttributeValue $AttributeValue `
-        -ElementValue $ElementValue `
-        -XPath $XPath `
-        -Timeout $Timeout `
-        -Wait:$Wait
+    # get the meta id of the element
+    $id = Get-MonocleElementId -Element $Element
+    Write-MonocleHost -Message "Submitting form block: $($id)"
 
     $url = Get-MonocleUrl
-    $result.Element.Submit() | Out-Null
+    $Element.Submit() | Out-Null
     Start-MonocleSleepWhileBusy
 
     # check if we should wait until the url is different
     if ($WaitUrl) {
-        Wait-MonocleUrlDifferent -FromUrl $url -Timeout $Timeout
+        Wait-MonocleUrlDifferent -FromUrl $url
     }
 }
 
 function Get-MonocleElementValue
 {
-    [CmdletBinding(DefaultParameterSetName='Id')]
+    [CmdletBinding()]
     [OutputType([string])]
     param (
-        [Parameter(Mandatory=$true, ParameterSetName='Id')]
-        [string]
-        $Id,
-
-        [Parameter(Mandatory=$true, ParameterSetName='Tag')]
-        [string]
-        $TagName,
-
-        [Parameter(ParameterSetName='Tag')]
-        [string]
-        $AttributeName,
-
-        [Parameter(ParameterSetName='Tag')]
-        [string]
-        $AttributeValue,
-
-        [Parameter(ParameterSetName='Tag')]
-        [string]
-        $ElementValue,
-
-        [Parameter(ParameterSetName='XPath')]
-        [string]
-        $XPath,
-
-        [Parameter()]
-        [int]
-        $Timeout = 10,
+        [Parameter(Mandatory=$true, ValueFromPipeline=$true)]
+        [OpenQA.Selenium.IWebElement]
+        $Element,
 
         [switch]
-        $Wait
+        $Mask
     )
 
-    $result = Get-MonocleElement `
-        -FilterType $PSCmdlet.ParameterSetName `
-        -Id $Id `
-        -TagName $TagName `
-        -AttributeName $AttributeName `
-        -AttributeValue $AttributeValue `
-        -ElementValue $ElementValue `
-        -XPath $XPath `
-        -Timeout $Timeout `
-        -Wait:$Wait
+    # get the meta id of the element
+    $id = Get-MonocleElementId -Element $Element
 
-    # get the value of the element, if it's a select element, get the appropriate option where option is selected
-    if (($result.Element.Length -gt 1) -and ($result.Element[0].TagName -ieq 'option')) {
-        return ($result.Element | Where-Object { $_.Selected -eq $true }).Text
+    # get the value of the element
+    $value = $Element.Text
+
+    if ($Mask) {
+        Write-MonocleHost -Message "Value of $($id) element: ********"
+    }
+    else {
+        Write-MonocleHost -Message "Value of $($id) element: $value"
     }
 
-    # if not a select element, then return the value
-    return $result.Element.Text
+    return $value
 }
 
 function Test-MonocleElement
@@ -225,17 +195,68 @@ function Test-MonocleElement
         $XPath
     )
 
-    $result = Get-MonocleElement `
+    $result = $null
+
+    try {
+        $result = Get-MonocleElementInternal `
+            -FilterType $PSCmdlet.ParameterSetName `
+            -Id $Id `
+            -TagName $TagName `
+            -AttributeName $AttributeName `
+            -AttributeValue $AttributeValue `
+            -ElementValue $ElementValue `
+            -XPath $XPath
+    }
+    catch { }
+
+    return (($null -eq $result) -or ($null -ne $result.Element))
+}
+
+function Get-MonocleElement
+{
+    [CmdletBinding(DefaultParameterSetName='Id')]
+    [OutputType([OpenQA.Selenium.IWebElement])]
+    param (
+        [Parameter(Mandatory=$true, ParameterSetName='Id')]
+        [string]
+        $Id,
+
+        [Parameter(Mandatory=$true, ParameterSetName='Tag')]
+        [string]
+        $TagName,
+
+        [Parameter(ParameterSetName='Tag')]
+        [string]
+        $AttributeName,
+
+        [Parameter(ParameterSetName='Tag')]
+        [string]
+        $AttributeValue,
+
+        [Parameter(ParameterSetName='Tag')]
+        [string]
+        $ElementValue,
+
+        [Parameter(ParameterSetName='XPath')]
+        [string]
+        $XPath
+    )
+
+    # attempt to get the monocle element
+    $result = Get-MonocleElementInternal `
         -FilterType $PSCmdlet.ParameterSetName `
         -Id $Id `
         -TagName $TagName `
         -AttributeName $AttributeName `
         -AttributeValue $AttributeValue `
         -ElementValue $ElementValue `
-        -XPath $XPath `
-        -NoThrow
+        -XPath $XPath
 
-    return ($null -ne $result.Element)
+    # set the meta id on the element
+    Set-MonocleElementId -Element $result.Element -Id $result.Id
+
+    # return the element
+    return $result.Element
 }
 
 function Wait-MonocleValue
@@ -248,14 +269,11 @@ function Wait-MonocleValue
 
         [Parameter(Mandatory=$true, ParameterSetName='Pattern')]
         [string]
-        $Pattern,
-
-        [Parameter()]
-        [int]
-        $AttemptCount = 10
+        $Pattern
     )
 
     $count = 0
+    $timeout = Get-MonocleTimeout
 
     switch ($PSCmdlet.ParameterSetName.ToLowerInvariant())
     {
@@ -263,7 +281,7 @@ function Wait-MonocleValue
             Write-MonocleHost -Message "Waiting for value to match pattern: $Pattern"
 
             while ($Browser.PageSource -inotmatch $Pattern) {
-                if ($count -ge $AttemptCount) {
+                if ($count -ge $timeout) {
                     throw "Expected value to match pattern: $($Pattern)`nBut found nothing`nOn: $(Get-MonocleUrl)"
                 }
 
@@ -276,7 +294,7 @@ function Wait-MonocleValue
             Write-MonocleHost -Message "Waiting for value: $Value"
 
             while ($Browser.PageSource -ine $Value) {
-                if ($count -ge $AttemptCount) {
+                if ($count -ge $timeout) {
                     throw "Expected value: $($Value)`nBut found nothing`nOn: $(Get-MonocleUrl)"
                 }
 
@@ -290,134 +308,39 @@ function Wait-MonocleValue
     Start-MonocleSleepWhileBusy
 }
 
-function Wait-MonocleElement
-{
-    [CmdletBinding(DefaultParameterSetName='Id')]
-    param (
-        [Parameter(Mandatory=$true, ParameterSetName='Id')]
-        [string]
-        $Id,
-
-        [Parameter(Mandatory=$true, ParameterSetName='Tag')]
-        [string]
-        $TagName,
-
-        [Parameter(ParameterSetName='Tag')]
-        [string]
-        $AttributeName,
-
-        [Parameter(ParameterSetName='Tag')]
-        [string]
-        $AttributeValue,
-
-        [Parameter(ParameterSetName='Tag')]
-        [string]
-        $ElementValue,
-
-        [Parameter(ParameterSetName='XPath')]
-        [string]
-        $XPath,
-
-        [Parameter()]
-        [int]
-        $AttemptCount = 10
-    )
-
-    $count = 0
-    $result = Get-MonocleElement `
-        -FilterType $PSCmdlet.ParameterSetName `
-        -Id $Id `
-        -TagName $TagName `
-        -AttributeName $AttributeName `
-        -AttributeValue $AttributeValue `
-        -ElementValue $ElementValue `
-        -XPath $XPath `
-        -NoThrow
-
-    Write-MonocleHost -Message "Waiting for element: $($result.Id)"
-
-    while ($null -eq $result.Element) {
-        if ($count -ge $AttemptCount) {
-            throw "Expected element: $($result.Id)`nBut found nothing`nOn: $(Get-MonocleUrl)"
-        }
-
-        $result = Get-MonocleElement `
-            -FilterType $PSCmdlet.ParameterSetName `
-            -Id $Id `
-            -TagName $TagName `
-            -AttributeName $AttributeName `
-            -AttributeValue $AttributeValue `
-            -ElementValue $ElementValue `
-            -XPath $XPath `
-            -NoThrow
-
-        $count++
-        Start-Sleep -Seconds 1
-    }
-
-    Write-MonocleHost -Message "Expected element loaded after $count second(s)"
-}
-
 function Invoke-MonocleElementClick
 {
-    [CmdletBinding(DefaultParameterSetName='Id')]
+    [CmdletBinding()]
     param (
-        [Parameter(Mandatory=$true, ParameterSetName='Id')]
-        [string]
-        $Id,
-
-        [Parameter(Mandatory=$true, ParameterSetName='Tag')]
-        [string]
-        $TagName,
-
-        [Parameter(ParameterSetName='Tag')]
-        [string]
-        $AttributeName,
-
-        [Parameter(ParameterSetName='Tag')]
-        [string]
-        $AttributeValue,
-
-        [Parameter(ParameterSetName='Tag')]
-        [string]
-        $ElementValue,
-
-        [Parameter(ParameterSetName='XPath')]
-        [string]
-        $XPath,
-
-        [Parameter()]
-        [int]
-        $Timeout = 10,
-
-        [switch]
-        $Wait,
+        [Parameter(Mandatory=$true, ValueFromPipeline=$true)]
+        [OpenQA.Selenium.IWebElement]
+        $Element,
 
         [switch]
         $WaitUrl
     )
 
-    # get the element to click
-    $result = Get-MonocleElement `
-        -FilterType $PSCmdlet.ParameterSetName `
-        -Id $Id `
-        -TagName $TagName `
-        -AttributeName $AttributeName `
-        -AttributeValue $AttributeValue `
-        -ElementValue $ElementValue `
-        -XPath $XPath `
-        -Timeout $Timeout `
-        -Wait:$Wait `
-
-    Write-MonocleHost -Message "Clicking element: $($result.Id)"
+    # get the meta id of the element
+    $id = Get-MonocleElementId -Element $Element
+    Write-MonocleHost -Message "Clicking element: $($id)"
 
     $url = Get-MonocleUrl
-    $result.Element.Click() | Out-Null
+
+    # attempt to click the element, if it fails for "another element would receive" then try clikcing use javascript
+    try {
+        $Element.Click() | Out-Null
+    }
+    catch {
+        if ($_.Exception.Message -ilike '*other element would receive the click*') {
+            Invoke-MonocleJavaScript -Script 'arguments[0].click()' -Arguments $Element | Out-Null
+        }
+    }
+
     Start-MonocleSleepWhileBusy
 
     # check if we should wait until the url is different
     if ($WaitUrl) {
-        Wait-MonocleUrlDifferent -FromUrl $url -Timeout $Timeout
+        Wait-MonocleUrlDifferent -FromUrl $url
     }
 }
 
@@ -425,63 +348,27 @@ function Invoke-MonocleElementCheck
 {
     [CmdletBinding(DefaultParameterSetName='Id')]
     param (
-        [Parameter(Mandatory=$true, ParameterSetName='Id')]
-        [string]
-        $Id,
-
-        [Parameter(Mandatory=$true, ParameterSetName='Tag')]
-        [string]
-        $TagName,
-
-        [Parameter(ParameterSetName='Tag')]
-        [string]
-        $AttributeName,
-
-        [Parameter(ParameterSetName='Tag')]
-        [string]
-        $AttributeValue,
-
-        [Parameter(ParameterSetName='Tag')]
-        [string]
-        $ElementValue,
-
-        [Parameter(ParameterSetName='XPath')]
-        [string]
-        $XPath,
-
-        [Parameter()]
-        [int]
-        $Timeout = 10,
-
-        [switch]
-        $Wait,
+        [Parameter(Mandatory=$true, ValueFromPipeline=$true)]
+        [OpenQA.Selenium.IWebElement]
+        $Element,
 
         [switch]
         $Uncheck
     )
 
-    # Attempt to retrieve an appropriate element
-    $result = Get-MonocleElement `
-        -FilterType $PSCmdlet.ParameterSetName `
-        -Id $Id `
-        -TagName $TagName `
-        -AttributeName $AttributeName `
-        -AttributeValue $AttributeValue `
-        -ElementValue $ElementValue `
-        -XPath $XPath `
-        -Timeout $Timeout `
-        -Wait:$Wait
+    # get the meta id of the element
+    $id = Get-MonocleElementId -Element $Element
 
     if ($Uncheck) {
-        Write-MonocleHost -Message "Unchecking element: $($result.Id)"
-        if ($result.Element.Selected) {
-            $result.Element.Click() | Out-Null
+        Write-MonocleHost -Message "Unchecking element: $($id)"
+        if ($Element.Selected) {
+            $Element.Click() | Out-Null
         }
     }
     else {
-        Write-MonocleHost -Message "Checking element: $($result.Id)"
-        if (!$result.Element.Selected) {
-            $result.Element.Click() | Out-Null
+        Write-MonocleHost -Message "Checking element: $($id)"
+        if (!$Element.Selected) {
+            $Element.Click() | Out-Null
         }
     }
 

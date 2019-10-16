@@ -9,8 +9,9 @@ function New-MonocleBrowser
         $Type,
 
         [Parameter()]
+        [Alias('PageTimeout')]
         [int]
-        $PageTimeout = 30,
+        $Timeout = 30,
 
         [Parameter()]
         [string[]]
@@ -25,7 +26,7 @@ function New-MonocleBrowser
         throw 'Failed to create Browser'
     }
 
-    $Browser.Manage().Timeouts().PageLoad = [timespan]::FromSeconds($PageTimeout)
+    Set-MonocleTimeout -Timeout $Timeout
     return $Browser
 }
 
@@ -156,6 +157,8 @@ function Invoke-MonocleRetryScript
             if ($attempt -ge $Attempts) {
                 throw $_.Exception
             }
+
+            Start-Sleep -Seconds 1
         }
     }
 

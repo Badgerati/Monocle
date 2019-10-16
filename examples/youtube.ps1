@@ -14,10 +14,10 @@ Start-MonocleFlow -Name 'Load YouTube' -Browser $browser -ScriptBlock {
     Set-MonocleUrl -Url 'https://www.youtube.com'
 
     # Sets the search bar element to the passed value to query
-    Set-MonocleElementValue -Id 'search_query' -Value 'Beerus Madness (Extended)'
+    Get-MonocleElement -Id 'search_query' | Set-MonocleElementValue -Value 'Beerus Madness (Extended)'
 
     # Tells the browser to click the search button
-    Invoke-MonocleElementClick -Id 'search-icon-legacy'
+    Get-MonocleElement -Id 'search-icon-legacy' | Invoke-MonocleElementClick
 
     # Though all commands sleep when the page is busy, some buttons use javascript
     # to reform the page. The following will sleep the browser until the passed URL is loaded.
@@ -25,10 +25,10 @@ Start-MonocleFlow -Name 'Load YouTube' -Browser $browser -ScriptBlock {
     Wait-MonocleUrl -Url 'https://www.youtube.com/results?search_query=' -StartsWith
 
     # Downloads an image from the page. This time it's using XPath
-    #Save-MonocleImage -XPath "//div[@data-context-item-id='SI6Yyr-iI6M']/img[1]" -Path '.\beerus.jpg'
+    #Get-MonocleElement -XPath "//div[@data-context-item-id='SI6Yyr-iI6M']/img[1]" | Save-MonocleImage -FilePath '.\beerus.jpg'
 
     # Tells the browser to click the video in the results. The video link is found via XPath
-    Invoke-MonocleElementClick -XPath "//a[@title='Dragon Ball Super Soundtrack - Beerus Madness (Extended)']" -Wait
+    Get-MonocleElement -XPath "//a[@title='Dragon Ball Super Soundtrack - Beerus Madness (Extended)']" | Invoke-MonocleElementClick
 
     # Again, we expect the URL to be loaded
     Wait-MonocleUrl -Url 'https://www.youtube.com/watch?v=SI6Yyr-iI6M'

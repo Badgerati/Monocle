@@ -71,8 +71,7 @@ function Assert-MonocleElementValue
             -AttributeName $AttributeName `
             -AttributeValue $AttributeValue `
             -ElementValue $ElementValue `
-            -XPath $XPath `
-            -UseInnerHtml
+            -XPath $XPath
 
         if ($innerHtml -ine $ExpectedValue) {
             throw "Element's value is not valid.`nExpected: $($ExpectedValue)`nBut got Value: $($value)`nand InnerHTML: $($innerHtml)"
