@@ -2,6 +2,7 @@
 
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/Badgerati/Monocle/master/LICENSE.txt)
 [![PowerShell](https://img.shields.io/powershellgallery/dt/monocle.svg?label=PowerShell&colorB=085298)](https://www.powershellgallery.com/packages/Monocle)
+[![Docker](https://img.shields.io/docker/pulls/badgerati/monocle.svg?label=Docker)](https://hub.docker.com/r/badgerati/monocle/)
 
 Monocle is a Cross-Platform PowerShell Web Automation module, made to make automating and testing websites easier. It's a PowerShell wrapper around Selenium, with the aim of abstracting Selenium away from the user.
 
@@ -10,7 +11,7 @@ Monocle is a Cross-Platform PowerShell Web Automation module, made to make autom
 * [Documentation](#documentation)
   * [Functions](#functions)
   * [Screenshots](#screenshots)
-  * [Waiting](#waiting)
+  * [2FA Codes](#2fa-codes)
   * [Docker](#docker)
 
 Monocle currently supports the following browsers:
@@ -40,19 +41,19 @@ Start-MonocleFlow -Name 'Load YouTube' -Browser $browser -ScriptBlock {
     Set-MonocleUrl -Url 'https://www.youtube.com'
 
     # sets the element's value, selecting the element by ID/Name
-    Set-MonocleElementValue -Id 'search_query' -Value 'Beerus Madness (Extended)'
+    Get-MonocleElement -Id 'search_query' | Set-MonocleElementValue -Value 'Beerus Madness (Extended)'
 
     # click the search button
-    Invoke-MonocleElementClick -Id 'search-btn'
+    Get-MonocleElement -Id 'search-icon-legacy' | Invoke-MonocleElementClick
 
     # wait for the URL to change to start with the following value
     Wait-MonocleUrl -Url 'https://www.youtube.com/results?search_query=' -StartsWith
 
     # downloads an image from the page, selcted by using an XPath to an element
-    Save-MonocleImage -XPath "//div[@data-context-item-id='SI6Yyr-iI6M']/img[1]" -Path '.\beerus.jpg'
+    Get-MonocleElement -XPath "//div[@data-context-item-id='SI6Yyr-iI6M']/img[1]" | Save-MonocleImage -FilePath '.\beerus.jpg'
 
     # tells the browser to click the video in the results
-    Invoke-MonocleElementClick -XPath "//a[@title='Dragon Ball Super Soundtrack - Beerus Madness (Extended)']"
+    Get-MonocleElement -XPath "//a[@title='Dragon Ball Super Soundtrack - Beerus Madness (Extended)']" | Invoke-MonocleElementClick
 
     # wait for the URL to be loaded
     Wait-MonocleUrl -Url 'https://www.youtube.com/watch?v=SI6Yyr-iI6M'
@@ -71,25 +72,33 @@ The following is a list of available functions in Monocle:
 
 * Assert-MonocleBodyValue
 * Assert-MonocleElementValue
+* Clear-MonocleElementValue
 * Close-MonocleBrowser
 * Edit-MonocleUrl
+* Get-Monocle2FACode
+* Get-MonocleElement
+* Get-MonocleElementAttribute
 * Get-MonocleElementValue
 * Get-MonocleHtml
+* Get-MonocleTimeout
 * Get-MonocleUrl
 * Invoke-MonocleElementCheck
 * Invoke-MonocleElementClick
+* Invoke-MonocleJavaScript
 * Invoke-MonocleRetryScript
 * Invoke-MonocleScreenshot
 * New-MonocleBrowser
 * Restart-MonocleBrowser
 * Save-MonocleImage
+* Set-MonocleElementAttribute
 * Set-MonocleElementValue
+* Set-MonocleTimeout
 * Set-MonocleUrl
 * Start-MonocleFlow
 * Start-MonocleSleep
 * Submit-MonocleForm
 * Test-MonocleElement
-* Wait-MonocleElement
+* Test-MonocleElementAttribute
 * Wait-MonocleUrl
 * Wait-MonocleUrlDifferent
 * Wait-MonocleValue
@@ -112,17 +121,18 @@ Invoke-MonocoleScreenshot -Name 'screenshot.png' -Path './path'
 
 > Not supplying `-ScreenshotPath` or `-Path` will default to the current path.
 
-### Waiting
+### 2FA Codes
 
-There are inbuilt function to wait for a URL or element. However, to wait for an element during a Set/Click call you can use the `-Wait` switch:
+Monocle has inbuilt support for generating 2FA codes. To do this you need the Secret Code that is normally presented with the QR code, and you pass this to the `Get-Monocle2FACode` function with a date - which is defaulted to now:
 
 ```powershell
-Invoke-MonocleElementClick -Id 'element-id' -Wait
+$code = Get-Monocle2FACode -Secret 'FAKENDMYJWLLB'
+Get-MonocleElement -Id '2fa-code' | Set-MonocleElementValue -Value $code -Mask
 ```
 
 ### Docker
 
-Monocle has an offical Docker image, which comes preloaded with:
+Monocle has an official Docker image, which comes preloaded with:
 
 * Monocle (obviously!)
 * Firefox

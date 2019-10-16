@@ -1,4 +1,32 @@
-function Get-MonocleElement
+function Get-MonocleElementId
+{
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true, ValueFromPipeline=$true)]
+        [OpenQA.Selenium.IWebElement]
+        $Element
+    )
+
+    return (Get-MonocleElementAttribute -Element $Element -Name 'meta-monocle-id')
+}
+
+function Set-MonocleElementId
+{
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true, ValueFromPipeline=$true)]
+        [OpenQA.Selenium.IWebElement]
+        $Element,
+
+        [Parameter(Mandatory=$true)]
+        [string]
+        $Id
+    )
+
+    return (Set-MonocleElementAttribute -Element $Element -Name 'meta-monocle-id' -Value $Id)
+}
+
+function Get-MonocleElementInternal
 {
     [CmdletBinding()]
     param (
@@ -31,21 +59,11 @@ function Get-MonocleElement
         [string]
         $XPath,
 
-        [Parameter()]
-        [int]
-        $Timeout,
-
         [switch]
-        $NoThrow,
-
-        [switch]
-        $Wait
+        $NoThrow
     )
 
-    if ($Timeout -le 0) {
-        $Timeout = 10
-    }
-
+    $timeout = Get-MonocleTimeout
     $seconds = 0
 
     while ($true) {
@@ -72,7 +90,7 @@ function Get-MonocleElement
         catch {
             $seconds++
 
-            if (!$Wait -or ($seconds -ge $Timeout)) {
+            if ($seconds -ge $timeout) {
                 throw $_.Exception
             }
 
@@ -109,7 +127,7 @@ function Get-MonocleElementById
 
     return @{
         Element = $element
-        Id = "<$($Id)>"
+        Id = "<[@id=$($Id)]>"
     }
 }
 
@@ -136,8 +154,6 @@ function Get-MonocleElementByTagName
         [switch]
         $NoThrow
     )
-
-    #$document = $Browser.Document
 
     # get all elements for the tag
     Write-Verbose -Message "Finding element with tag <$TagName>"
@@ -170,7 +186,7 @@ function Get-MonocleElementByTagName
             throw "Element <$TagName> with attribute '$AttributeName' and value of '$AttributeValue' not found"
         }
 
-        $id += "[$($AttributeName)=$($AttributeValue)]"
+        $id += "[@$($AttributeName)=$($AttributeValue)]"
     }
 
     if (![string]::IsNullOrWhiteSpace($ElementValue))

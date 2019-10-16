@@ -31,11 +31,9 @@ function Invoke-MonocleScreenshot
 
     $Name = ($Name -replace ' ', '_')
     $filepath = Join-Path $Path "$($Name).png"
-
     $screenshot.SaveAsFile($filepath, [OpenQA.Selenium.ScreenshotImageFormat]::Png)
 
     Write-MonocleHost -Message "Screenshot saved to: $filepath"
-
     return $filepath
 }
 
@@ -44,56 +42,29 @@ function Save-MonocleImage
     [CmdletBinding()]
     param (
         [Parameter(Mandatory=$true)]
-        [string]
-        $Path,
+        [OpenQA.Selenium.IWebElement]
+        $Element,
 
-        [Parameter(Mandatory=$true, ParameterSetName='Id')]
+        [Parameter(Mandatory=$true)]
         [string]
-        $Id,
-
-        [Parameter(Mandatory=$true, ParameterSetName='Tag')]
-        [string]
-        $TagName,
-
-        [Parameter(ParameterSetName='Tag')]
-        [string]
-        $AttributeName,
-
-        [Parameter(ParameterSetName='Tag')]
-        [string]
-        $AttributeValue,
-
-        [Parameter(ParameterSetName='Tag')]
-        [string]
-        $ElementValue,
-
-        [Parameter(ParameterSetName='XPath')]
-        [string]
-        $XPath
+        $FilePath
     )
 
-    $result = Get-MonocleElement `
-        -FilterType $PSCmdlet.ParameterSetName `
-        -Id $Id `
-        -TagName $TagName `
-        -AttributeName $AttributeName `
-        -AttributeValue $AttributeValue `
-        -ElementValue $ElementValue `
-        -XPath $XPath
+    # get the meta id of the element
+    $id = Get-MonocleElementId -Element $Element
+    Write-MonocleHost -Message "Downloading image from $($id)"
 
-    Write-MonocleHost -Message "Downloading image from $($result.Id)"
-
-    $tag = $result.Element.TagName
+    $tag = $Element.TagName
     if (@('img', 'image') -inotcontains $tag) {
-        throw "Element $($result.Id) is not an image element: $tag"
+        throw "Element $($id) is not an image element: $tag"
     }
 
-    $src = $result.Element.GetAttribute('src')
+    $src = Get-MonocleElementAttribute -Element $Element -Name 'src'
     if ([string]::IsNullOrWhiteSpace($src)) {
-        throw "Element $($result.Id) has no src attribute"
+        throw "Element $($id) has no src attribute"
     }
 
-    Invoke-MonocleDownloadImage -Source $src -Path $Path
+    Invoke-MonocleDownloadImage -Source $src -Path $FilePath
 }
 
 function Restart-MonocleBrowser
@@ -125,4 +96,20 @@ function Get-MonocleHtml
 
     Write-MonocleHost -Message "Writing the current page's HTML to '$($FilePath)'"
     $content | Out-File -FilePath $FilePath -Force | Out-Null
+}
+
+function Invoke-MonocleJavaScript
+{
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]
+        $Script,
+
+        [Parameter()]
+        [object[]]
+        $Arguments
+    )
+
+    $Browser.ExecuteScript($Script, $Arguments)
 }

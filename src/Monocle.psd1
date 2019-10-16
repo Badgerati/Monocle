@@ -11,7 +11,7 @@
     RootModule = 'Monocle.psm1'
 
     # Version number of this module.
-    ModuleVersion = '1.0.0'
+    ModuleVersion = '1.1.0'
 
     # ID used to uniquely identify this module
     GUID = '9dc3c8a1-664d-4253-a5d2-920250d3a15f'
@@ -33,7 +33,7 @@
         PSData = @{
 
             # Tags applied to this module. These help with module discovery in online galleries.
-            Tags = @('powershell', 'web', 'automation', 'testing', 'ie', 'internet-explorer', 'websites', 'chrome',
+            Tags = @('powershell', 'web', 'automation', 'testing', 'ie', 'internet-explorer', 'websites', 'chrome', '2fa',
                 'firefox', 'selenium', 'cross-platform', 'PSEdition_Core', 'PSEdition_Desktop', 'linux', 'google-chrome')
 
             # A URL to the license for this module.

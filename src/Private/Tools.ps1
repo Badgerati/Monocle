@@ -4,9 +4,9 @@ function Start-MonocleSleepWhileBusy
     param ()
 
     $count = 0
-    $timeout = $Browser.Manage().Timeouts().PageLoad
+    $timeout = Get-MonocleTimeout
 
-    while ($Browser.ExecuteScript('return document.readyState') -ine 'complete')
+    while ((Invoke-MonocleJavaScript -Script 'return document.readyState') -ine 'complete')
     {
         if ($count -ge $timeout) {
             throw "Loading URL has timed-out after $timeout second(s)"
@@ -82,11 +82,7 @@ function Test-MonocleUrl
         [Parameter(Mandatory=$true)]
         [ValidateNotNull()]
         [string]
-        $Url,
-
-        [Parameter()]
-        [int]
-        $Attempts = 1
+        $Url
     )
 
     # truncate the URL of any query parameters
@@ -94,18 +90,19 @@ function Test-MonocleUrl
 
     # initial code setting as success
     $code = 200
+    $timeout = Get-MonocleTimeout
     $message = [string]::Empty
 
-    $attempt = 1
-    while ($attempt -le $Attempts) {
+    $count = 1
+    while ($count -le $timeout) {
         try {
-            Write-MonocleHost -Message "Testing: $url [attempt: $($attempt)]"
+            Write-MonocleHost -Message "Testing: $url [attempt: $($count)]"
 
             if ($PSVersionTable.PSVersion.Major -le 5) {
-                $result = Invoke-WebRequest -Uri $Url -TimeoutSec 30 -UseBasicParsing -ErrorAction Stop
+                $result = Invoke-WebRequest -Uri $Url -TimeoutSec $timeout -UseBasicParsing -ErrorAction Stop
             }
             else {
-                $result = Invoke-WebRequest -Uri $Url -TimeoutSec 30 -ErrorAction Stop
+                $result = Invoke-WebRequest -Uri $Url -TimeoutSec $timeout -ErrorAction Stop
             }
 
             $code = [int]$result.StatusCode
@@ -131,12 +128,12 @@ function Test-MonocleUrl
         }
 
         if (($code -eq -1) -or ($code -ge 400)) {
-            $attempt++
-            Start-Sleep -Seconds 1
-
-            if ($attempt -gt $Attempts) {
+            $count++
+            if ($count -gt $timeout) {
                 break
             }
+
+            Start-Sleep -Seconds 1
         }
         else {
             break
