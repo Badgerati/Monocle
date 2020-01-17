@@ -41,7 +41,7 @@ function Save-MonocleImage
 {
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory=$true, ValueFromPipeline=$true)]
         [OpenQA.Selenium.IWebElement]
         $Element,
 
