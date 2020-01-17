@@ -11,7 +11,7 @@
     RootModule = 'Monocle.psm1'
 
     # Version number of this module.
-    ModuleVersion = '1.1.1'
+    ModuleVersion = '1.1.2'
 
     # ID used to uniquely identify this module
     GUID = '9dc3c8a1-664d-4253-a5d2-920250d3a15f'
@@ -20,7 +20,7 @@
     Author = 'Matthew Kelly (Badgerati)'
 
     # Copyright statement for this module
-    Copyright = 'Copyright (c) 2016-2019 Matthew Kelly (Badgerati), licensed under the MIT License.'
+    Copyright = 'Copyright (c) 2016-2020 Matthew Kelly (Badgerati), licensed under the MIT License.'
 
     # Description of the functionality provided by this module
     Description = 'PowerShell Web Automation module, made to make automating and testing websites easier'
