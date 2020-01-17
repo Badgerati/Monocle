@@ -209,7 +209,7 @@ function Test-MonocleElement
     }
     catch { }
 
-    return (($null -eq $result) -or ($null -ne $result.Element))
+    return (($null -ne $result) -and ($null -ne $result.Element))
 }
 
 function Get-MonocleElement
