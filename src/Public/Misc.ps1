@@ -113,3 +113,43 @@ function Invoke-MonocleJavaScript
 
     $Browser.ExecuteScript($Script, $Arguments)
 }
+
+function Start-MonocleSleepUntilPresentElement
+{
+    [CmdletBinding()]
+    param (
+      [String]$selector = 'text',
+      [String]$kind = 'id',
+      [Int]$delay = 300
+    )
+
+    $script = @'
+
+// Wait block
+var _await = function(_selector, _kind, _delay) {
+    var _element;
+    if (_kind.match(/id/)) {
+        element = document.getElementById(_selector);
+    } else if (_kind.match(/css/)) {
+        element = document.querySelector(_selector);
+    } else {
+        throw new exception('unsupported kind of locator');
+    }
+    if (typeof element == 'undefined' || element == null) {
+        setTimeout(function() {
+            _await(_selector, _kind, _delay);
+        }, _delay);
+    }
+}
+var _selector = arguments[0];
+var _kind = arguments[1] || 'id';
+var _delay = arguments[2] || 1000;
+_await(_selector, _kind, _delay);
+return (true);
+'@
+    Invoke-MonocleJavaScript -Script $script -arguments @($selector, $kind, $delay)
+    # TODO: meaningful message
+    # Write-MonocleHost -Message "Browser busy for $count seconds(s)"
+}
+
+
