@@ -59,11 +59,18 @@ function Get-MonocleElementInternal
         [string]
         $XPath,
 
+        [Parameter()]
+        [int]
+        $Timeout = 0,
+
         [switch]
         $NoThrow
     )
 
-    $timeout = Get-MonocleTimeout
+    if ($Timeout -le 0) {
+        $Timeout = Get-MonocleTimeout
+    }
+
     $seconds = 0
 
     while ($true) {
@@ -90,7 +97,7 @@ function Get-MonocleElementInternal
         catch {
             $seconds++
 
-            if ($seconds -ge $timeout) {
+            if ($seconds -ge $Timeout) {
                 throw $_.Exception
             }
 

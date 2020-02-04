@@ -212,6 +212,50 @@ function Test-MonocleElement
     return (($null -ne $result) -and ($null -ne $result.Element))
 }
 
+function Wait-MonocleElement
+{
+    [CmdletBinding(DefaultParameterSetName='Id')]
+    param (
+        [Parameter(Mandatory=$true, ParameterSetName='Id')]
+        [string]
+        $Id,
+
+        [Parameter(Mandatory=$true, ParameterSetName='Tag')]
+        [string]
+        $TagName,
+
+        [Parameter(ParameterSetName='Tag')]
+        [string]
+        $AttributeName,
+
+        [Parameter(ParameterSetName='Tag')]
+        [string]
+        $AttributeValue,
+
+        [Parameter(ParameterSetName='Tag')]
+        [string]
+        $ElementValue,
+
+        [Parameter(ParameterSetName='XPath')]
+        [string]
+        $XPath,
+
+        [Parameter()]
+        [int]
+        $Timeout = 600
+    )
+
+    Get-MonocleElementInternal `
+        -FilterType $PSCmdlet.ParameterSetName `
+        -Id $Id `
+        -TagName $TagName `
+        -AttributeName $AttributeName `
+        -AttributeValue $AttributeValue `
+        -ElementValue $ElementValue `
+        -XPath $XPath `
+        -Timeout $Timeout | Out-Null
+}
+
 function Get-MonocleElement
 {
     [CmdletBinding(DefaultParameterSetName='Id')]
