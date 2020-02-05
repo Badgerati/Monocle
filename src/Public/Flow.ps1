@@ -69,9 +69,9 @@ function Start-MonocleFlow
         [string]
         $ScreenshotPath,
 
-        [Parameter(Mandatory=$true)]
+        [Parameter()]
         [OpenQA.Selenium.Remote.RemoteWebDriver]
-        $Browser,
+        $Browser = $null,
 
         [Parameter(ParameterSetName='Screenshot')]
         [switch]
@@ -83,6 +83,11 @@ function Start-MonocleFlow
 
     # set the output depth
     $env:MONOCLE_OUTPUT_DEPTH = '1'
+
+    # if no browser, set chrome as default
+    if ($null -eq $Browser) {
+        $Browser = New-MonocleBrowser -Type Chrome
+    }
 
     # invoke the logic
     try {
