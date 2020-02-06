@@ -86,6 +86,7 @@ function Start-MonocleFlow
 
     # if no browser, set chrome as default
     if ($null -eq $Browser) {
+        $CloseBrowser = $true
         $Browser = New-MonocleBrowser -Type Chrome
     }
 

@@ -36,5 +36,5 @@ Start-MonocleFlow -Name 'Load YouTube' <#-Browser $browser#> -ScriptBlock {
 
 } -CloseBrowser -ScreenshotOnFail
 
-# or close the browser manually:
+# or close the browser manually if not using default:
 #Close-MonocleBrowser -Browser $browser

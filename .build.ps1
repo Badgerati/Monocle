@@ -12,7 +12,7 @@ Task 'Selenium' {
     $packages = @{
         'Selenium.WebDriver' = '3.141.0'
         'Selenium.Support' = '3.141.0'
-        'Selenium.WebDriver.ChromeDriver' = '78.0.3904.10500'
+        'Selenium.WebDriver.ChromeDriver' = '80.0.3987.1600'
         'Selenium.WebDriver.IEDriver' = '3.150.1'
         'Selenium.WebDriver.GeckoDriver' = '0.26.0'
     }
