@@ -16,9 +16,11 @@ Monocle is a Cross-Platform PowerShell Web Automation module, made to make autom
 
 Monocle currently supports the following browsers:
 
-* IE
-* Google Chrome
-* Firefox
+* IE (v3.150)
+* Chrome (v80.0.3987.1600)
+* Firefox (driver: v0.26)
+* Edge (driver: v79.0.309.71)
+* EdgeLegacy (driver: v17.17134)
 
 ## Install
 
@@ -103,6 +105,14 @@ The following is a list of available functions in Monocle:
 * Wait-MonocleUrl
 * Wait-MonocleUrlDifferent
 * Wait-MonocleValue
+
+### Custom Drivers
+
+If you need to use an earlier/later version of a driver, you can supply a `-Path` to `New-MonocleBrowser` which is the directory that contains the driver.
+
+```powershell
+New-MonocleBrowser -Type Chrome -Path 'C:\Drivers\Chrome\70.0.3156.0'
+```
 
 ### Screenshots
 

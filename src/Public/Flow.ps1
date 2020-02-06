@@ -4,7 +4,7 @@ function New-MonocleBrowser
     [OutputType([OpenQA.Selenium.Remote.RemoteWebDriver])]
     param(
         [Parameter(Mandatory=$true)]
-        [ValidateSet('IE', 'Chrome', 'Firefox')]
+        [ValidateSet('IE', 'Chrome', 'Edge', 'EdgeLegacy', 'Firefox')]
         [string]
         $Type,
 
@@ -17,11 +17,15 @@ function New-MonocleBrowser
         [string[]]
         $Arguments,
 
+        [Parameter()]
+        [string]
+        $Path,
+
         [switch]
         $Hide
     )
 
-    $Browser = Initialize-MonocleBrowser -Type $Type -Arguments $Arguments -Hide:$Hide
+    $Browser = Initialize-MonocleBrowser -Type $Type -Arguments $Arguments -Path $Path -Hide:$Hide
     if (!$? -or ($null -eq $Browser)) {
         throw 'Failed to create Browser'
     }
