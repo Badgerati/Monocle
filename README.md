@@ -99,6 +99,7 @@ The following is a list of available functions in Monocle:
 * Submit-MonocleForm
 * Test-MonocleElement
 * Test-MonocleElementAttribute
+* Wait-MonocleElement
 * Wait-MonocleUrl
 * Wait-MonocleUrlDifferent
 * Wait-MonocleValue

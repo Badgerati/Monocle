@@ -192,7 +192,11 @@ function Test-MonocleElement
 
         [Parameter(ParameterSetName='XPath')]
         [string]
-        $XPath
+        $XPath,
+
+        [Parameter(ParameterSetName='Selector')]
+        [string]
+        $Selector
     )
 
     $result = $null
@@ -205,11 +209,61 @@ function Test-MonocleElement
             -AttributeName $AttributeName `
             -AttributeValue $AttributeValue `
             -ElementValue $ElementValue `
-            -XPath $XPath
+            -XPath $XPath `
+            -Selector $Selector
     }
     catch { }
 
     return (($null -ne $result) -and ($null -ne $result.Element))
+}
+
+function Wait-MonocleElement
+{
+    [CmdletBinding(DefaultParameterSetName='Id')]
+    param (
+        [Parameter(Mandatory=$true, ParameterSetName='Id')]
+        [string]
+        $Id,
+
+        [Parameter(Mandatory=$true, ParameterSetName='Tag')]
+        [string]
+        $TagName,
+
+        [Parameter(ParameterSetName='Tag')]
+        [string]
+        $AttributeName,
+
+        [Parameter(ParameterSetName='Tag')]
+        [string]
+        $AttributeValue,
+
+        [Parameter(ParameterSetName='Tag')]
+        [string]
+        $ElementValue,
+
+        [Parameter(ParameterSetName='XPath')]
+        [string]
+        $XPath,
+
+        [Parameter(ParameterSetName='Selector')]
+        [string]
+        $Selector,
+
+        [Parameter()]
+        [int]
+        $Timeout = 600
+    )
+
+    Get-MonocleElementInternal `
+        -FilterType $PSCmdlet.ParameterSetName `
+        -Id $Id `
+        -TagName $TagName `
+        -AttributeName $AttributeName `
+        -AttributeValue $AttributeValue `
+        -ElementValue $ElementValue `
+        -XPath $XPath `
+        -Selector $Selector `
+        -Timeout $Timeout | Out-Null
 }
 
 function Get-MonocleElement
@@ -239,7 +293,11 @@ function Get-MonocleElement
 
         [Parameter(ParameterSetName='XPath')]
         [string]
-        $XPath
+        $XPath,
+
+        [Parameter(ParameterSetName='Selector')]
+        [string]
+        $Selector
     )
 
     # attempt to get the monocle element
@@ -250,7 +308,8 @@ function Get-MonocleElement
         -AttributeName $AttributeName `
         -AttributeValue $AttributeValue `
         -ElementValue $ElementValue `
-        -XPath $XPath
+        -XPath $XPath `
+        -Selector $Selector
 
     # set the meta id on the element
     Set-MonocleElementId -Element $result.Element -Id $result.Id

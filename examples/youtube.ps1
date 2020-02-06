@@ -1,22 +1,24 @@
-#$path = Split-Path -Parent -Path (Split-Path -Parent -Path $MyInvocation.MyCommand.Path)
-#$path = "$($path)/src/Monocle.psm1"
-#Import-Module $path -Force -ErrorAction Stop
-Import-Module -Name Monocle -Force -ErrorAction Stop
+$path = Split-Path -Parent -Path (Split-Path -Parent -Path $MyInvocation.MyCommand.Path)
+$path = "$($path)/src/Monocle.psm1"
+Import-Module $path -Force -ErrorAction Stop
+#Import-Module -Name Monocle -Force -ErrorAction Stop
 
 # Create a browser object
-$browser = New-MonocleBrowser -Type Chrome
+#$browser = New-MonocleBrowser -Type Firefox
 
 # Monocle runs commands in web flows, for easy disposal and test tracking
 # Each flow needs a name
-Start-MonocleFlow -Name 'Load YouTube' -Browser $browser -ScriptBlock {
+Start-MonocleFlow -Name 'Load YouTube' <#-Browser $browser#> -ScriptBlock {
 
     # Tell the browser which URL to navigate to, will sleep while page is loading
     Set-MonocleUrl -Url 'https://www.youtube.com'
 
     # Sets the search bar element to the passed value to query
-    Get-MonocleElement -Id 'search_query' | Set-MonocleElementValue -Value 'Beerus Madness (Extended)'
+    Get-MonocleElement -Selector 'input[name=search_query]' | Set-MonocleElementValue -Value 'Beerus Madness (Extended)'
+    #Get-MonocleElement -Id 'search_query' | Set-MonocleElementValue -Value 'Beerus Madness (Extended)'
 
     # Tells the browser to click the search button
+    Wait-MonocleElement -Id 'search-icon-legacy'
     Get-MonocleElement -Id 'search-icon-legacy' | Invoke-MonocleElementClick
 
     # Though all commands sleep when the page is busy, some buttons use javascript
@@ -35,5 +37,5 @@ Start-MonocleFlow -Name 'Load YouTube' -Browser $browser -ScriptBlock {
 
 } -CloseBrowser -ScreenshotOnFail
 
-# or close the browser manually:
+# or close the browser manually if not using default:
 #Close-MonocleBrowser -Browser $browser
