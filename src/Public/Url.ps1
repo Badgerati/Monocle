@@ -54,7 +54,12 @@ function Get-MonocleTimeout
     [OutputType([int])]
     param()
 
-    return [int]$Browser.Manage().Timeouts().PageLoad.TotalSeconds
+    $timeout = [int]$Browser.Manage().Timeouts().PageLoad.TotalSeconds
+    if ($timeout -le 0) {
+        $timeout = 30
+    }
+
+    return $timeout
 }
 
 function Set-MonocleTimeout

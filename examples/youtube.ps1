@@ -4,11 +4,11 @@ Import-Module $path -Force -ErrorAction Stop
 #Import-Module -Name Monocle -Force -ErrorAction Stop
 
 # Create a browser object
-#$browser = New-MonocleBrowser -Type Firefox
+$browser = New-MonocleBrowser -Type Chrome
 
 # Monocle runs commands in web flows, for easy disposal and test tracking
 # Each flow needs a name
-Start-MonocleFlow -Name 'Load YouTube' <#-Browser $browser#> -ScriptBlock {
+Start-MonocleFlow -Name 'Load YouTube' -Browser $browser -ScriptBlock {
 
     # Tell the browser which URL to navigate to, will sleep while page is loading
     Set-MonocleUrl -Url 'https://www.youtube.com'
