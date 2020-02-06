@@ -14,7 +14,8 @@ Start-MonocleFlow -Name 'Load YouTube' <#-Browser $browser#> -ScriptBlock {
     Set-MonocleUrl -Url 'https://www.youtube.com'
 
     # Sets the search bar element to the passed value to query
-    Get-MonocleElement -Id 'search_query' | Set-MonocleElementValue -Value 'Beerus Madness (Extended)'
+    Get-MonocleElement -Selector 'input[name=search_query]' | Set-MonocleElementValue -Value 'Beerus Madness (Extended)'
+    #Get-MonocleElement -Id 'search_query' | Set-MonocleElementValue -Value 'Beerus Madness (Extended)'
 
     # Tells the browser to click the search button
     Wait-MonocleElement -Id 'search-icon-legacy'

@@ -31,7 +31,7 @@ function Get-MonocleElementInternal
     [CmdletBinding()]
     param (
         [Parameter(Mandatory=$true)]
-        [ValidateSet('Id', 'Tag', 'XPath')]
+        [ValidateSet('Id', 'Tag', 'XPath', 'Selector')]
         [string]
         $FilterType,
 
@@ -58,6 +58,10 @@ function Get-MonocleElementInternal
         [Parameter()]
         [string]
         $XPath,
+
+        [Parameter()]
+        [string]
+        $Selector,
 
         [Parameter()]
         [int]
@@ -91,6 +95,10 @@ function Get-MonocleElementInternal
 
                 'xpath' {
                     return (Get-MonocleElementByXPath -XPath $XPath -NoThrow:$NoThrow)
+                }
+
+                'selector' {
+                    return (Get-MonocleElementBySelector -Selector $Selector -NoThrow:$NoThrow)
                 }
             }
         }
@@ -244,5 +252,31 @@ function Get-MonocleElementByXPath
     return @{
         Element = $element
         Id = "<$($XPath)>"
+    }
+}
+
+function Get-MonocleElementBySelector
+{
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true)]
+        [string]
+        $Selector,
+
+        [switch]
+        $NoThrow
+    )
+
+    Write-Verbose -Message "Finding element with selector '$Selector'"
+    $element = Invoke-MonocleJavaScript -Script 'return document.querySelector(arguments[0])' -Arguments $Selector
+
+    # throw error if can't find element
+    if (($null -eq $element) -and !$NoThrow) {
+        throw "Element with selector of '$Selector' not found"
+    }
+
+    return @{
+        Element = $element
+        Id = "<$($Selector)>"
     }
 }
