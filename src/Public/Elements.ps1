@@ -192,7 +192,11 @@ function Test-MonocleElement
 
         [Parameter(ParameterSetName='XPath')]
         [string]
-        $XPath
+        $XPath,
+
+        [Parameter(ParameterSetName='Selector')]
+        [string]
+        $Selector
     )
 
     $result = $null
@@ -205,7 +209,8 @@ function Test-MonocleElement
             -AttributeName $AttributeName `
             -AttributeValue $AttributeValue `
             -ElementValue $ElementValue `
-            -XPath $XPath
+            -XPath $XPath `
+            -Selector $Selector
     }
     catch { }
 
@@ -240,6 +245,10 @@ function Wait-MonocleElement
         [string]
         $XPath,
 
+        [Parameter(ParameterSetName='Selector')]
+        [string]
+        $Selector,
+
         [Parameter()]
         [int]
         $Timeout = 600
@@ -253,6 +262,7 @@ function Wait-MonocleElement
         -AttributeValue $AttributeValue `
         -ElementValue $ElementValue `
         -XPath $XPath `
+        -Selector $Selector `
         -Timeout $Timeout | Out-Null
 }
 
@@ -283,7 +293,11 @@ function Get-MonocleElement
 
         [Parameter(ParameterSetName='XPath')]
         [string]
-        $XPath
+        $XPath,
+
+        [Parameter(ParameterSetName='Selector')]
+        [string]
+        $Selector
     )
 
     # attempt to get the monocle element
@@ -294,7 +308,8 @@ function Get-MonocleElement
         -AttributeName $AttributeName `
         -AttributeValue $AttributeValue `
         -ElementValue $ElementValue `
-        -XPath $XPath
+        -XPath $XPath `
+        -Selector $Selector
 
     # set the meta id on the element
     Set-MonocleElementId -Element $result.Element -Id $result.Id
