@@ -82,6 +82,7 @@ The following is a list of available functions in Monocle:
 * Get-MonocleElementAttribute
 * Get-MonocleElementValue
 * Get-MonocleHtml
+* Get-MonoclePageSize
 * Get-MonocleTimeout
 * Get-MonocleUrl
 * Install-MonocleDriver
@@ -90,6 +91,7 @@ The following is a list of available functions in Monocle:
 * Invoke-MonocleJavaScript
 * Invoke-MonocleRetryScript
 * Invoke-MonocleScreenshot
+* Move-MonoclePage
 * New-MonocleBrowser
 * Restart-MonocleBrowser
 * Save-MonocleImage
