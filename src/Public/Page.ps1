@@ -23,7 +23,6 @@ function Move-MonoclePage
 
     Write-MonocleHost -Message "Scrolling to: $Position"
     Invoke-MonocleJavaScript -Arguments $Position -Script 'window.scrollTo(0, arguments[0])' | Out-Null
-
 }
 
 function Get-MonoclePageSize
