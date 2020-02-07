@@ -84,6 +84,7 @@ The following is a list of available functions in Monocle:
 * Get-MonocleHtml
 * Get-MonocleTimeout
 * Get-MonocleUrl
+* Install-MonocleDriver
 * Invoke-MonocleElementCheck
 * Invoke-MonocleElementClick
 * Invoke-MonocleJavaScript
@@ -108,11 +109,13 @@ The following is a list of available functions in Monocle:
 
 ### Custom Drivers
 
-If you need to use an earlier/later version of a driver, you can supply a `-Path` to `New-MonocleBrowser` which is the directory that contains the driver.
+If you need to use an earlier/later version of a driver, you manually download the driver and then supply a `-Path` to `New-MonocleBrowser` which is the directory that contains the driver.
 
 ```powershell
 New-MonocleBrowser -Type Chrome -Path 'C:\Drivers\Chrome\70.0.3156.0'
 ```
+
+Also, you could use `Install-MonocleDriver`. This will download a driver for you, and be automatically used by Monocle. This does require the `nuget` CLI being installed.
 
 ### Screenshots
 

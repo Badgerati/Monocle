@@ -149,3 +149,8 @@ function Test-MonocleUrl
 
     return $code
 }
+
+function Get-MonocleCustomDriverPath
+{
+    return './custom_drivers'
+}
