@@ -269,6 +269,7 @@ function Get-MonocleElementBySelector
 
     Write-Verbose -Message "Finding element with selector '$Selector'"
     $element = Invoke-MonocleJavaScript -Script 'return document.querySelector(arguments[0])' -Arguments $Selector
+    $element = ($element | Select-Object -First 1)
 
     # throw error if can't find element
     if (($null -eq $element) -and !$NoThrow) {
