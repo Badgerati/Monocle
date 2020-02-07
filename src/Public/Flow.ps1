@@ -21,17 +21,29 @@ function New-MonocleBrowser
         [string]
         $Path,
 
+        [Parameter()]
+        [string]
+        $BinaryPath,
+
         [switch]
         $Hide
     )
 
-    $Browser = Initialize-MonocleBrowser -Type $Type -Arguments $Arguments -Path $Path -Hide:$Hide
-    if (!$? -or ($null -eq $Browser)) {
-        throw 'Failed to create Browser'
-    }
+    try {
+        $Browser = Initialize-MonocleBrowser -Type $Type -Arguments $Arguments -Path $Path -BinaryPath $BinaryPath -Hide:$Hide
+        if (!$? -or ($null -eq $Browser)) {
+            throw 'Failed to create Browser'
+        }
 
-    Set-MonocleTimeout -Timeout $Timeout
-    return $Browser
+        Set-MonocleTimeout -Timeout $Timeout
+        return $Browser
+    }
+    catch {
+        try {
+            Close-MonocleBrowser -Browser $Browser
+        } catch {}
+        throw
+    }
 }
 
 function Close-MonocleBrowser
@@ -44,13 +56,15 @@ function Close-MonocleBrowser
     )
 
     @($Browser) | ForEach-Object {
-        $type = ($_.GetType().Name -ireplace 'Driver', '')
+        if ($null -ne $_) {
+            $type = ($_.GetType().Name -ireplace 'Driver', '')
 
-        Write-Verbose "Closing the $($type) Browser"
-        $_.Quit() | Out-Null
+            Write-Verbose "Closing the $($type) Browser"
+            $_.Quit() | Out-Null
 
-        Write-Verbose "Disposing the $($type) Browser"
-        $_.Dispose() | Out-Null
+            Write-Verbose "Disposing the $($type) Browser"
+            $_.Dispose() | Out-Null
+        }
     }
 
     $Browser = $null

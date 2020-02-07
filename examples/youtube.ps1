@@ -4,6 +4,7 @@ Import-Module $path -Force -ErrorAction Stop
 #Import-Module -Name Monocle -Force -ErrorAction Stop
 
 # Create a browser object
+#Install-MonocleDriver -Type Chrome -Version '79.0.3945.3600'
 $browser = New-MonocleBrowser -Type Chrome
 
 # Monocle runs commands in web flows, for easy disposal and test tracking

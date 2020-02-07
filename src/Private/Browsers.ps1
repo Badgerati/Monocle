@@ -1,8 +1,13 @@
 function Get-MonocleBrowserPath
 {
-    $root = (Split-Path -Parent -Path $PSScriptRoot)
-    $root = (Join-Path $root 'lib')
-    $root = (Join-Path $root 'Browsers')
+    # use the custom driver, or inbuilt ones?
+    $root = Get-MonocleCustomDriverPath
+
+    if (!(Test-Path $root)) {
+        $root = (Split-Path -Parent -Path $PSScriptRoot)
+        $root = (Join-Path $root 'lib')
+        $root = (Join-Path $root 'Browsers')
+    }
 
     $os = 'win'
     $chmod = $false
@@ -24,7 +29,7 @@ function Get-MonocleBrowserPath
         }
     }
 
-    return $path
+    return (Resolve-Path -Path $path).Path
 }
 
 function Initialize-MonocleBrowser
@@ -41,6 +46,10 @@ function Initialize-MonocleBrowser
         [Parameter()]
         [string]
         $Path,
+
+        [Parameter()]
+        [string]
+        $BinaryPath,
 
         [switch]
         $Hide
@@ -61,7 +70,7 @@ function Initialize-MonocleBrowser
 
     switch ($Type.ToLowerInvariant()) {
         'ie' {
-            return Initialize-MonocleIEBrowser -Arguments $Arguments -Path $Path -Hide:$Hide
+            return Initialize-MonocleIEBrowser -Arguments $Arguments -Path $Path
         }
 
         'edge' {
@@ -69,11 +78,11 @@ function Initialize-MonocleBrowser
         }
 
         'edgelegacy' {
-            return Initialize-MonocleEdgeLegacyBrowser -Arguments $Arguments -Path $Path -Hide:$Hide
+            return Initialize-MonocleEdgeLegacyBrowser -Arguments $Arguments -Path $Path
         }
 
         'chrome' {
-            return Initialize-MonocleChromeBrowser -Arguments $Arguments -Path $Path -Hide:$Hide
+            return Initialize-MonocleChromeBrowser -Arguments $Arguments -Path $Path -BinaryPath $BinaryPath -Hide:$Hide
         }
 
         'firefox' {
@@ -95,10 +104,7 @@ function Initialize-MonocleIEBrowser
 
         [Parameter()]
         [string]
-        $Path,
-
-        [switch]
-        $Hide
+        $Path
     )
 
     # set the options/args
@@ -136,10 +142,7 @@ function Initialize-MonocleEdgeLegacyBrowser
 
         [Parameter()]
         [string]
-        $Path,
-
-        [switch]
-        $Hide
+        $Path
     )
 
     # set the options/args
@@ -168,6 +171,10 @@ function Initialize-MonocleChromeBrowser
         [string]
         $Path,
 
+        [Parameter()]
+        [string]
+        $BinaryPath,
+
         [switch]
         $Hide
     )
@@ -176,6 +183,11 @@ function Initialize-MonocleChromeBrowser
     $options = [OpenQA.Selenium.Chrome.ChromeOptions]::new()
     if ($null -eq $Arguments) {
         $Arguments = @()
+    }
+
+    # set binary path to another chrome browser
+    if (![string]::IsNullOrWhiteSpace($BinaryPath)) {
+        $options.BinaryLocation = $BinaryPath
     }
 
     # needed to prevent general issues
