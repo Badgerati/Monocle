@@ -34,7 +34,8 @@
 
             # Tags applied to this module. These help with module discovery in online galleries.
             Tags = @('powershell', 'web', 'automation', 'testing', 'ie', 'internet-explorer', 'websites', 'chrome', '2fa',
-                'firefox', 'selenium', 'cross-platform', 'PSEdition_Core', 'PSEdition_Desktop', 'linux', 'google-chrome')
+                'firefox', 'selenium', 'cross-platform', 'PSEdition_Core', 'PSEdition_Desktop', 'linux', 'google-chrome',
+                'edge', 'chromium')
 
             # A URL to the license for this module.
             LicenseUri = 'https://raw.githubusercontent.com/Badgerati/Monocle/master/LICENSE.txt'
