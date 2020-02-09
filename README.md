@@ -93,6 +93,7 @@ The following is a list of available functions in Monocle:
 * Invoke-MonocleJavaScript
 * Invoke-MonocleRetryScript
 * Invoke-MonocleScreenshot
+* Measure-MonocleElement
 * Move-MonoclePage
 * New-MonocleBrowser
 * Remove-MonocleElementClass

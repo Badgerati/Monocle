@@ -23,7 +23,11 @@ function Set-MonocleElementId
         $Id
     )
 
-    return (Set-MonocleElementAttribute -Element $Element -Name 'meta-monocle-id' -Value $Id)
+    if ([string]::IsNullOrWhiteSpace($Element.TagName)) {
+        return
+    }
+
+    Set-MonocleElementAttribute -Element $Element -Name 'meta-monocle-id' -Value $Id
 }
 
 function Get-MonocleElementInternal
@@ -68,7 +72,10 @@ function Get-MonocleElementInternal
         $Timeout = 0,
 
         [switch]
-        $NoThrow
+        $NoThrow,
+
+        [switch]
+        $All
     )
 
     if ($Timeout -le 0) {
@@ -81,24 +88,24 @@ function Get-MonocleElementInternal
         try {
             switch ($FilterType.ToLowerInvariant()) {
                 'id' {
-                    return (Get-MonocleElementById -Id $Id -NoThrow:$NoThrow)
+                    return (Get-MonocleElementById -Id $Id -NoThrow:$NoThrow -All:$All)
                 }
 
                 'tag' {
                     if ([string]::IsNullOrWhiteSpace($AttributeName)) {
-                        return (Get-MonocleElementByTagName -TagName $TagName -ElementValue $ElementValue -NoThrow:$NoThrow)
+                        return (Get-MonocleElementByTagName -TagName $TagName -ElementValue $ElementValue -NoThrow:$NoThrow -All:$All)
                     }
                     else {
-                        return (Get-MonocleElementByTagName -TagName $TagName -AttributeName $AttributeName -AttributeValue $AttributeValue -ElementValue $ElementValue -NoThrow:$NoThrow)
+                        return (Get-MonocleElementByTagName -TagName $TagName -AttributeName $AttributeName -AttributeValue $AttributeValue -ElementValue $ElementValue -NoThrow:$NoThrow -All:$All)
                     }
                 }
 
                 'xpath' {
-                    return (Get-MonocleElementByXPath -XPath $XPath -NoThrow:$NoThrow)
+                    return (Get-MonocleElementByXPath -XPath $XPath -NoThrow:$NoThrow -All:$All)
                 }
 
                 'selector' {
-                    return (Get-MonocleElementBySelector -Selector $Selector -NoThrow:$NoThrow)
+                    return (Get-MonocleElementBySelector -Selector $Selector -NoThrow:$NoThrow -All:$All)
                 }
             }
         }
@@ -123,21 +130,29 @@ function Get-MonocleElementById
         $Id,
 
         [switch]
-        $NoThrow
+        $NoThrow,
+
+        [switch]
+        $All
     )
 
     Write-Verbose -Message "Finding element with identifier '$Id'"
-    $element = $Browser.FindElementsById($Id) | Select-Object -First 1
+    $element = $Browser.FindElementsById($Id)
 
     # if no element by ID, try by first named element
     if ($null -eq $element) {
         Write-Verbose -Message "Finding element with name '$Id'"
-        $element = $Browser.FindElementsByName($Id) | Select-Object -First 1
+        $element = $Browser.FindElementsByName($Id)
     }
 
     # throw error if can't find element
-    if (($null -eq $element) -and !$NoThrow) {
+    if (($null -eq ($element | Select-Object -First 1)) -and !$NoThrow) {
         throw "Element with ID/Name of '$Id' not found"
+    }
+
+    # one or all elements?
+    if (!$All) {
+        $element = $element | Select-Object -First 1
     }
 
     return @{
@@ -154,11 +169,11 @@ function Get-MonocleElementByTagName
         [string]
         $TagName,
 
-        [Parameter(Mandatory=$true, ParameterSetName='Attribute')]
+        [Parameter(ParameterSetName='Attribute')]
         [string]
         $AttributeName,
 
-        [Parameter(Mandatory=$true, ParameterSetName='Attribute')]
+        [Parameter(ParameterSetName='Attribute')]
         [string]
         $AttributeValue,
 
@@ -167,29 +182,32 @@ function Get-MonocleElementByTagName
         $ElementValue,
 
         [switch]
-        $NoThrow
+        $NoThrow,
+
+        [switch]
+        $All
     )
 
     # get all elements for the tag
     Write-Verbose -Message "Finding element with tag <$TagName>"
-    $elements = $Browser.FindElementsByTagName($TagName)
+    $element = $Browser.FindElementsByTagName($TagName)
     $id = $TagName.ToLowerInvariant()
 
     # if we have attribute info, attempt to get an element
-    if ($PSCmdlet.ParameterSetName -ieq 'Attribute')
+    if (($PSCmdlet.ParameterSetName -ieq 'Attribute') -and ![string]::IsNullOrWhiteSpace($AttributeName))
     {
-        Write-Verbose -Message "Filtering $($elements.Length) elements by attribute '$AttributeName' with value '$AttributeValue'"
+        Write-Verbose -Message "Filtering $($element.Length) elements by attribute '$AttributeName' with value '$AttributeValue'"
         $found = $false
         $justFirst = [string]::IsNullOrWhiteSpace($ElementValue)
 
         # find elements with the correct attribue name/value
-        $elements = @(foreach ($element in $elements) {
-            if ($element.GetAttribute($AttributeName) -inotmatch $AttributeValue) {
+        $element = @(foreach ($_element in $element) {
+            if ($_element.GetAttribute($AttributeName) -inotmatch $AttributeValue) {
                 continue
             }
 
             $found = $true
-            $element
+            $_element
 
             if ($found -and $justFirst) {
                 break
@@ -197,7 +215,7 @@ function Get-MonocleElementByTagName
         })
 
         # throw error if can't find element
-        if (($null -eq ($elements | Select-Object -First 1)) -and !$NoThrow) {
+        if (($null -eq ($element | Select-Object -First 1)) -and !$NoThrow) {
             throw "Element <$TagName> with attribute '$AttributeName' and value of '$AttributeValue' not found"
         }
 
@@ -206,21 +224,21 @@ function Get-MonocleElementByTagName
 
     if (![string]::IsNullOrWhiteSpace($ElementValue))
     {
-        Write-Verbose -Message "Filtering $($elements.Length) elements with tag <$TagName>, and value '$ElementValue'"
+        Write-Verbose -Message "Filtering $($element.Length) elements with tag <$TagName>, and value '$ElementValue'"
 
-        $element = $elements |
-            Where-Object { $_.Text -imatch $ElementValue }
-            Select-Object -First 1
+        $element = $element | Where-Object { $_.Text -imatch $ElementValue }
 
         # throw error if can't find element
-        if (($null -eq $element) -and !$noThrow) {
+        if (($null -eq ($element | Select-Object -First 1)) -and !$NoThrow) {
             throw "Element <$TagName> with value of '$ElementValue' not found"
         }
 
         $id += "=$($ElementValue)"
     }
-    else {
-        $element = ($elements | Select-Object -First 1)
+
+    # one or all elements?
+    if (!$All) {
+        $element = $element | Select-Object -First 1
     }
 
     return @{
@@ -238,15 +256,23 @@ function Get-MonocleElementByXPath
         $XPath,
 
         [switch]
-        $NoThrow
+        $NoThrow,
+
+        [switch]
+        $All
     )
 
     Write-Verbose -Message "Finding element with XPath '$XPath'"
-    $element = @($Browser.FindElementsByXPath($XPath)) | Select-Object -First 1
+    $element = @($Browser.FindElementsByXPath($XPath))
 
     # throw error if can't find element
-    if (($null -eq $element) -and !$NoThrow) {
+    if (($null -eq ($element | Select-Object -First 1)) -and !$NoThrow) {
         throw "Element with XPath of '$XPath' not found"
+    }
+
+    # one or all elements?
+    if (!$All) {
+        $element = $element | Select-Object -First 1
     }
 
     return @{
@@ -264,15 +290,22 @@ function Get-MonocleElementBySelector
         $Selector,
 
         [switch]
-        $NoThrow
+        $NoThrow,
+
+        [switch]
+        $All
     )
 
     Write-Verbose -Message "Finding element with selector '$Selector'"
-    $element = Invoke-MonocleJavaScript -Script 'return document.querySelector(arguments[0])' -Arguments $Selector
-    $element = ($element | Select-Object -First 1)
+    if ($All) {
+        $element = Invoke-MonocleJavaScript -Script 'return document.querySelectorAll(arguments[0])' -Arguments $Selector
+    }
+    else {
+        $element = Invoke-MonocleJavaScript -Script 'return document.querySelector(arguments[0])' -Arguments $Selector
+    }
 
     # throw error if can't find element
-    if (($null -eq $element) -and !$NoThrow) {
+    if (($null -eq ($element | Select-Object -First 1)) -and !$NoThrow) {
         throw "Element with selector of '$Selector' not found"
     }
 

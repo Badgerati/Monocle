@@ -335,7 +335,65 @@ function Wait-MonocleElement
 function Get-MonocleElement
 {
     [CmdletBinding(DefaultParameterSetName='Id')]
-    [OutputType([OpenQA.Selenium.IWebElement])]
+    [OutputType([OpenQA.Selenium.IWebElement[]])]
+    param (
+        [Parameter(Mandatory=$true, ParameterSetName='Id')]
+        [string]
+        $Id,
+
+        [Parameter(Mandatory=$true, ParameterSetName='Tag')]
+        [string]
+        $TagName,
+
+        [Parameter(ParameterSetName='Tag')]
+        [string]
+        $AttributeName,
+
+        [Parameter(ParameterSetName='Tag')]
+        [string]
+        $AttributeValue,
+
+        [Parameter(ParameterSetName='Tag')]
+        [string]
+        $ElementValue,
+
+        [Parameter(ParameterSetName='XPath')]
+        [string]
+        $XPath,
+
+        [Parameter(ParameterSetName='Selector')]
+        [string]
+        $Selector,
+
+        [switch]
+        $All
+    )
+
+    # attempt to get the monocle element
+    $result = Get-MonocleElementInternal `
+        -FilterType $PSCmdlet.ParameterSetName `
+        -Id $Id `
+        -TagName $TagName `
+        -AttributeName $AttributeName `
+        -AttributeValue $AttributeValue `
+        -ElementValue $ElementValue `
+        -XPath $XPath `
+        -Selector $Selector `
+        -All:$All
+
+    # set the meta id on the element
+    @($result.Element) | ForEach-Object {
+        Set-MonocleElementId -Element $_ -Id $result.Id
+    }
+
+    # return the element
+    return $result.Element
+}
+
+function Measure-MonocleElement
+{
+    [CmdletBinding(DefaultParameterSetName='Id')]
+    [OutputType([int])]
     param (
         [Parameter(Mandatory=$true, ParameterSetName='Id')]
         [string]
@@ -375,13 +433,15 @@ function Get-MonocleElement
         -AttributeValue $AttributeValue `
         -ElementValue $ElementValue `
         -XPath $XPath `
-        -Selector $Selector
+        -Selector $Selector `
+        -NoThrow `
+        -All
 
-    # set the meta id on the element
-    Set-MonocleElementId -Element $result.Element -Id $result.Id
+    if ($null -eq $result.Element) {
+        return 0
+    }
 
-    # return the element
-    return $result.Element
+    return @($result.Element).Length
 }
 
 function Wait-MonocleValue
