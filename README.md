@@ -81,7 +81,7 @@ The following is a list of available functions in Monocle:
 * Get-Monocle2FACode
 * Get-MonocleElement
 * Get-MonocleElementAttribute
-* Get-MonocleElementClass
+* Get-MonocleElementCSS
 * Get-MonocleElementValue
 * Get-MonocleHtml
 * Get-MonoclePageSize
@@ -96,9 +96,11 @@ The following is a list of available functions in Monocle:
 * Move-MonoclePage
 * New-MonocleBrowser
 * Remove-MonocleElementClass
+* Remove-MonocleElementCSS
 * Restart-MonocleBrowser
 * Save-MonocleImage
 * Set-MonocleElementAttribute
+* Set-MonocleElementCSS
 * Set-MonocleElementValue
 * Set-MonocleTimeout
 * Set-MonocleUrl
@@ -107,6 +109,10 @@ The following is a list of available functions in Monocle:
 * Submit-MonocleForm
 * Test-MonocleElement
 * Test-MonocleElementAttribute
+* Test-MonocleElementChecked
+* Test-MonocleElementClass
+* Test-MonocleElementCSS
+* Test-MonocleElementVisible
 * Wait-MonocleElement
 * Wait-MonocleUrl
 * Wait-MonocleUrlDifferent

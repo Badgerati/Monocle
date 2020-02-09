@@ -90,11 +90,15 @@ function Test-MonocleElementAttribute
 
         [Parameter(Mandatory=$true)]
         [string]
-        $Name
+        $Name,
+
+        [Parameter()]
+        [string]
+        $Value
     )
 
     try {
-        return ($null -ne (Get-MonocleElementAttribute -Element $Element -Name $Name))
+        return ((Get-MonocleElementAttribute -Element $Element -Name $Name) -ieq $Value)
     }
     catch {
         return $false
@@ -467,7 +471,7 @@ function Invoke-MonocleElementClick
 
 function Invoke-MonocleElementCheck
 {
-    [CmdletBinding(DefaultParameterSetName='Id')]
+    [CmdletBinding()]
     param (
         [Parameter(Mandatory=$true, ValueFromPipeline=$true)]
         [OpenQA.Selenium.IWebElement]
@@ -494,4 +498,129 @@ function Invoke-MonocleElementCheck
     }
 
     Start-MonocleSleepWhileBusy
+}
+
+function Test-MonocleElementChecked
+{
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true, ValueFromPipeline=$true)]
+        [OpenQA.Selenium.IWebElement]
+        $Element
+    )
+
+    return $Element.Selected
+}
+
+function Test-MonocleElementVisible
+{
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true, ValueFromPipeline=$true)]
+        [OpenQA.Selenium.IWebElement]
+        $Element
+    )
+
+    # run js to check element visibility
+    $js = @"
+        var doc = document.documentElement
+        var isInViewport = true
+        var element = arguments[0]
+
+        while (element.parentNode && element.parentNode.getBoundingClientRect) {
+            var elemDimension = element.getBoundingClientRect()
+            var elemComputedStyle = window.getComputedStyle(element)
+            var viewportDimension = {
+                width: doc.clientWidth,
+                height: doc.clientHeight
+            }
+
+            isInViewport = isInViewport &&
+                            (elemComputedStyle.display !== 'none' &&
+                            elemComputedStyle.visibility === 'visible' &&
+                            parseFloat(elemComputedStyle.opacity, 10) > 0 &&
+                            elemDimension.bottom > 0 &&
+                            elemDimension.right > 0 &&
+                            elemDimension.top < viewportDimension.height &&
+                            elemDimension.left < viewportDimension.width)
+
+            element = element.parentNode
+        }
+
+        return isInViewport
+"@
+
+        return (Invoke-MonocleJavaScript -Script $js -Arguments $Element)
+}
+
+function Set-MonocleElementCSS
+{
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true, ValueFromPipeline=$true)]
+        [OpenQA.Selenium.IWebElement]
+        $Element,
+
+        [Parameter(Mandatory=$true)]
+        [string]
+        $Name,
+
+        [Parameter()]
+        [string]
+        $Value
+    )
+
+    Invoke-MonocleJavaScript -Script 'arguments[0].style[arguments[1]] = arguments[2]' -Arguments $Element, $Name, $Value | Out-Null
+}
+
+function Remove-MonocleElementCSS
+{
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true, ValueFromPipeline=$true)]
+        [OpenQA.Selenium.IWebElement]
+        $Element,
+
+        [Parameter(Mandatory=$true)]
+        [string]
+        $Name
+    )
+
+    Invoke-MonocleJavaScript -Script 'arguments[0].style[arguments[1]] = ""' -Arguments $Element, $Name | Out-Null
+}
+
+function Get-MonocleElementCSS
+{
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true, ValueFromPipeline=$true)]
+        [OpenQA.Selenium.IWebElement]
+        $Element,
+
+        [Parameter(Mandatory=$true)]
+        [string]
+        $Name
+    )
+
+    return (Invoke-MonocleJavaScript -Script 'return arguments[0].style[arguments[1]]' -Arguments $Element, $Name)
+}
+
+function Test-MonocleElementCSS
+{
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true, ValueFromPipeline=$true)]
+        [OpenQA.Selenium.IWebElement]
+        $Element,
+
+        [Parameter(Mandatory=$true)]
+        [string]
+        $Name,
+
+        [Parameter()]
+        [string]
+        $Value
+    )
+
+    return (Invoke-MonocleJavaScript -Script 'arguments[0].style[arguments[1]] == arguments[2]' -Arguments $Element, $Name, $Value)
 }
