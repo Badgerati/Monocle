@@ -72,6 +72,7 @@ Close-MonocleBrowser -Browser $browser
 
 The following is a list of available functions in Monocle:
 
+* Add-MonocleElementClass
 * Assert-MonocleBodyValue
 * Assert-MonocleElementValue
 * Clear-MonocleElementValue
@@ -80,6 +81,7 @@ The following is a list of available functions in Monocle:
 * Get-Monocle2FACode
 * Get-MonocleElement
 * Get-MonocleElementAttribute
+* Get-MonocleElementClass
 * Get-MonocleElementValue
 * Get-MonocleHtml
 * Get-MonoclePageSize
@@ -93,6 +95,7 @@ The following is a list of available functions in Monocle:
 * Invoke-MonocleScreenshot
 * Move-MonoclePage
 * New-MonocleBrowser
+* Remove-MonocleElementClass
 * Restart-MonocleBrowser
 * Save-MonocleImage
 * Set-MonocleElementAttribute
