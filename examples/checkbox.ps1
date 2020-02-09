@@ -8,11 +8,11 @@ $browser = New-MonocleBrowser -Type Chrome
 # Monocle runs commands in web flows, for easy disposal and test tracking
 Start-MonocleFlow -Name 'Load Html' -Browser $browser -ScriptBlock {
 
-    Set-MonocleUrl -Url 'https://html.com/tags/select/'
+    Set-MonocleUrl -Url 'https://html.com/input-type-checkbox/'
 
-    $element = Get-MonocleElement -Selector 'select'
-    $element | Set-MonocleElementValue -Value 'Lesser flamingo'
-    $element | Get-MonocleElementValue
-    $element | Test-MonocleElementVisible
+    $element = Get-MonocleElement -Id 'love'
+    $element | Test-MonocleElementChecked
+    $element | Invoke-MonocleElementCheck
+    $element | Test-MonocleElementChecked
 
 } -CloseBrowser
