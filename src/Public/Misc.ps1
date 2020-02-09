@@ -113,3 +113,74 @@ function Invoke-MonocleJavaScript
 
     $Browser.ExecuteScript($Script, $Arguments)
 }
+
+function Install-MonocleDriver
+{
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory=$true)]
+        [ValidateSet('IE', 'Chrome', 'Firefox')]
+        [string]
+        $Type,
+
+        [Parameter(Mandatory=$true)]
+        [string]
+        $Version
+    )
+
+    # create the custom driver folder
+    $customDir = Get-MonocleCustomDriverPath
+    New-Item -Path $customDir -ItemType Directory -Force -ErrorAction Stop | Out-Null
+
+    # remove temp if it exists
+    $tempDir = Join-Path $customDir 'temp'
+    if (Test-Path $tempDir) {
+        Remove-Item -Path $tempDir -Force -Recurse -ErrorAction Stop | Out-Null
+    }
+
+    # down the driver to a temp dir within custom
+    $driverName = (@{
+        Chrome = 'Selenium.WebDriver.ChromeDriver'
+        IE = 'Selenium.WebDriver.IEDriver'
+        Firefox = 'Selenium.WebDriver.GeckoDriver'
+    })[$Type]
+
+    Write-Host "Downloading $($Type) [$($Version)] driver..."
+    nuget install $driverName -version $Version -outputdirectory $tempDir | Out-Null
+    if (!$?) {
+        throw "Failed to download the $($Type) [$($Version)] driver"
+    }
+
+    # create the os dirs
+    $winDir = Join-Path $customDir 'win'
+    $nixDir = Join-Path $customDir 'linux'
+    $macDir = Join-Path $customDir 'mac'
+
+    New-Item -Path $winDir -ItemType Directory -Force | Out-Null
+    New-Item -Path $nixDir -ItemType Directory -Force | Out-Null
+    New-Item -Path $macDir -ItemType Directory -Force | Out-Null
+
+    # move the drivers into an appropraite structure
+    switch ($Type.ToLowerInvariant()) {
+        'ie' {
+            Copy-Item -Path "$($tempDir)/$($driverName).$($Version)/driver/*" -Destination $winDir -Recurse -Force | Out-Null
+        }
+
+        'chrome' {
+            Copy-Item -Path "$($tempDir)/$($driverName).$($Version)/driver/win32/*" -Destination $winDir -Recurse -Force | Out-Null
+            Copy-Item -Path "$($tempDir)/$($driverName).$($Version)/driver/linux64/*" -Destination $nixDir -Recurse -Force | Out-Null
+            Copy-Item -Path "$($tempDir)/$($driverName).$($Version)/driver/mac64/*" -Destination $macDir -Recurse -Force | Out-Null
+        }
+
+        'firefox' {
+            Copy-Item -Path "$($tempDir)/$($driverName).$($Version)/driver/win64/*" -Destination $winDir -Recurse -Force | Out-Null
+            Copy-Item -Path "$($tempDir)/$($driverName).$($Version)/driver/linux64/*" -Destination $nixDir -Recurse -Force | Out-Null
+            Copy-Item -Path "$($tempDir)/$($driverName).$($Version)/driver/mac64/*" -Destination $macDir -Recurse -Force | Out-Null
+        }
+    }
+
+    # remove the temp dir in custom
+    if (Test-Path $tempDir) {
+        Remove-Item -Path $tempDir -Force -Recurse -ErrorAction Stop | Out-Null
+    }
+}

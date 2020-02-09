@@ -16,9 +16,11 @@ Monocle is a Cross-Platform PowerShell Web Automation module, made to make autom
 
 Monocle currently supports the following browsers:
 
-* IE
-* Google Chrome
-* Firefox
+* IE (v3.150)
+* Chrome (v80.0.3987.1600)
+* Firefox (driver: v0.26)
+* Edge (driver: v79.0.309.71)
+* EdgeLegacy (driver: v17.17134)
 
 ## Install
 
@@ -70,6 +72,7 @@ Close-MonocleBrowser -Browser $browser
 
 The following is a list of available functions in Monocle:
 
+* Add-MonocleElementClass
 * Assert-MonocleBodyValue
 * Assert-MonocleElementValue
 * Clear-MonocleElementValue
@@ -78,19 +81,27 @@ The following is a list of available functions in Monocle:
 * Get-Monocle2FACode
 * Get-MonocleElement
 * Get-MonocleElementAttribute
+* Get-MonocleElementCSS
 * Get-MonocleElementValue
 * Get-MonocleHtml
+* Get-MonoclePageSize
 * Get-MonocleTimeout
 * Get-MonocleUrl
+* Install-MonocleDriver
 * Invoke-MonocleElementCheck
 * Invoke-MonocleElementClick
 * Invoke-MonocleJavaScript
 * Invoke-MonocleRetryScript
 * Invoke-MonocleScreenshot
+* Measure-MonocleElement
+* Move-MonoclePage
 * New-MonocleBrowser
+* Remove-MonocleElementClass
+* Remove-MonocleElementCSS
 * Restart-MonocleBrowser
 * Save-MonocleImage
 * Set-MonocleElementAttribute
+* Set-MonocleElementCSS
 * Set-MonocleElementValue
 * Set-MonocleTimeout
 * Set-MonocleUrl
@@ -99,10 +110,24 @@ The following is a list of available functions in Monocle:
 * Submit-MonocleForm
 * Test-MonocleElement
 * Test-MonocleElementAttribute
+* Test-MonocleElementChecked
+* Test-MonocleElementClass
+* Test-MonocleElementCSS
+* Test-MonocleElementVisible
 * Wait-MonocleElement
 * Wait-MonocleUrl
 * Wait-MonocleUrlDifferent
 * Wait-MonocleValue
+
+### Custom Drivers
+
+If you need to use an earlier/later version of a driver, you manually download the driver and then supply a `-Path` to `New-MonocleBrowser` which is the directory that contains the driver.
+
+```powershell
+New-MonocleBrowser -Type Chrome -Path 'C:\Drivers\Chrome\70.0.3156.0'
+```
+
+Also, you could use `Install-MonocleDriver`. This will download a driver for you, and be automatically used by Monocle. This does require the `nuget` CLI being installed.
 
 ### Screenshots
 

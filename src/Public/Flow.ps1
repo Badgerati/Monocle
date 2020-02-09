@@ -4,7 +4,7 @@ function New-MonocleBrowser
     [OutputType([OpenQA.Selenium.Remote.RemoteWebDriver])]
     param(
         [Parameter(Mandatory=$true)]
-        [ValidateSet('IE', 'Chrome', 'Firefox')]
+        [ValidateSet('IE', 'Chrome', 'Edge', 'EdgeLegacy', 'Firefox')]
         [string]
         $Type,
 
@@ -17,17 +17,33 @@ function New-MonocleBrowser
         [string[]]
         $Arguments,
 
+        [Parameter()]
+        [string]
+        $Path,
+
+        [Parameter()]
+        [string]
+        $BinaryPath,
+
         [switch]
         $Hide
     )
 
-    $Browser = Initialize-MonocleBrowser -Type $Type -Arguments $Arguments -Hide:$Hide
-    if (!$? -or ($null -eq $Browser)) {
-        throw 'Failed to create Browser'
-    }
+    try {
+        $Browser = Initialize-MonocleBrowser -Type $Type -Arguments $Arguments -Path $Path -BinaryPath $BinaryPath -Hide:$Hide
+        if (!$? -or ($null -eq $Browser)) {
+            throw 'Failed to create Browser'
+        }
 
-    Set-MonocleTimeout -Timeout $Timeout
-    return $Browser
+        Set-MonocleTimeout -Timeout $Timeout
+        return $Browser
+    }
+    catch {
+        try {
+            Close-MonocleBrowser -Browser $Browser
+        } catch {}
+        throw
+    }
 }
 
 function Close-MonocleBrowser
@@ -40,13 +56,15 @@ function Close-MonocleBrowser
     )
 
     @($Browser) | ForEach-Object {
-        $type = ($_.GetType().Name -ireplace 'Driver', '')
+        if ($null -ne $_) {
+            $type = ($_.GetType().Name -ireplace 'Driver', '')
 
-        Write-Verbose "Closing the $($type) Browser"
-        $_.Quit() | Out-Null
+            Write-Verbose "Closing the $($type) Browser"
+            $_.Quit() | Out-Null
 
-        Write-Verbose "Disposing the $($type) Browser"
-        $_.Dispose() | Out-Null
+            Write-Verbose "Disposing the $($type) Browser"
+            $_.Dispose() | Out-Null
+        }
     }
 
     $Browser = $null
