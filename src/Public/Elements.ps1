@@ -28,11 +28,22 @@ function Set-MonocleElementValue
     }
 
     # set the value of the element
-    if (!$NoClear) {
-        $Element.Clear()
+    if ($Element.TagName -ieq 'select') {
+        $select = [OpenQA.Selenium.Support.UI.SelectElement]::new($Element)
+        try {
+            $select.SelectByText($Value)
+        }
+        catch {
+            $select.SelectByValue($Value)
+        }
     }
+    else {
+        if (!$NoClear) {
+            $Element.Clear()
+        }
 
-    $Element.SendKeys($Value)
+        $Element.SendKeys($Value)
+    }
 }
 
 function Clear-MonocleElementValue
@@ -110,6 +121,54 @@ function Set-MonocleElementAttribute
     Invoke-MonocleJavaScript -Script 'arguments[0].setAttribute(arguments[1], arguments[2])' -Arguments $Element, $Name, $Value | Out-Null
 }
 
+function Add-MonocleElementClass
+{
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true, ValueFromPipeline=$true)]
+        [OpenQA.Selenium.IWebElement]
+        $Element,
+
+        [Parameter(Mandatory=$true)]
+        [string]
+        $Name
+    )
+
+    Invoke-MonocleJavaScript -Script 'arguments[0].classList.add(arguments[1])' -Arguments $Element, $Name | Out-Null
+}
+
+function Remove-MonocleElementClass
+{
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true, ValueFromPipeline=$true)]
+        [OpenQA.Selenium.IWebElement]
+        $Element,
+
+        [Parameter(Mandatory=$true)]
+        [string]
+        $Name
+    )
+
+    Invoke-MonocleJavaScript -Script 'arguments[0].classList.remove(arguments[1])' -Arguments $Element, $Name | Out-Null
+}
+
+function Test-MonocleElementClass
+{
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true, ValueFromPipeline=$true)]
+        [OpenQA.Selenium.IWebElement]
+        $Element,
+
+        [Parameter(Mandatory=$true)]
+        [string]
+        $Name
+    )
+
+    return (Invoke-MonocleJavaScript -Script 'return arguments[0].classList.contains(arguments[1])' -Arguments $Element, $Name)
+}
+
 function Submit-MonocleForm
 {
     [CmdletBinding()]
@@ -154,6 +213,9 @@ function Get-MonocleElementValue
 
     # get the value of the element
     $value = $Element.Text
+    if ($Element.TagName -ieq 'select') {
+        $value = [OpenQA.Selenium.Support.UI.SelectElement]::new($Element).SelectedOption.Text
+    }
 
     if ($Mask) {
         Write-MonocleHost -Message "Value of $($id) element: ********"
