@@ -140,7 +140,7 @@ function Get-MonocleElementById
     $element = $Browser.FindElementsById($Id)
 
     # if no element by ID, try by first named element
-    if ($null -eq $element) {
+    if ($null -eq ($element | Select-Object -First 1)) {
         Write-Verbose -Message "Finding element with name '$Id'"
         $element = $Browser.FindElementsByName($Id)
     }
