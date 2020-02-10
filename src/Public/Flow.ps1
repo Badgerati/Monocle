@@ -165,7 +165,7 @@ function Invoke-MonocleRetryScript
     }
 
     # update the depth of output
-    $env:MONOCLE_OUTPUT_DEPTH = [string](([int]$env:MONOCLE_OUTPUT_DEPTH) + 1)
+    Add-MonocleOutputDepth
 
     # attempt the logic
     $attempt = 1
@@ -187,5 +187,5 @@ function Invoke-MonocleRetryScript
     }
 
     # reset the depth
-    $env:MONOCLE_OUTPUT_DEPTH = [string](([int]$env:MONOCLE_OUTPUT_DEPTH) - 1)
+    Remove-MonocleOutputDepth
 }
