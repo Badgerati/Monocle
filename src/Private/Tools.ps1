@@ -154,3 +154,13 @@ function Get-MonocleCustomDriverPath
 {
     return './custom_drivers'
 }
+
+function Add-MonocleOutputDepth
+{
+    $env:MONOCLE_OUTPUT_DEPTH = [string](([int]$env:MONOCLE_OUTPUT_DEPTH) + 1)
+}
+
+function Remove-MonocleOutputDepth
+{
+    $env:MONOCLE_OUTPUT_DEPTH = [string](([int]$env:MONOCLE_OUTPUT_DEPTH) - 1)
+}

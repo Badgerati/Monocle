@@ -684,3 +684,40 @@ function Test-MonocleElementCSS
 
     return (Invoke-MonocleJavaScript -Script 'arguments[0].style[arguments[1]] == arguments[2]' -Arguments $Element, $Name, $Value)
 }
+
+function Enter-MonocleFrame
+{
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true, ValueFromPipeline=$true)]
+        [OpenQA.Selenium.IWebElement]
+        $Element,
+
+        [Parameter(Mandatory=$true)]
+        [scriptblock]
+        $ScriptBlock
+    )
+
+    # get the meta id of the element
+    $id = Get-MonocleElementId -Element $Element
+
+    try {
+        # enter the iframe
+        Write-MonocleHost -Message "Entering iFrame: $($id)"
+        $Browser.SwitchTo().Frame($Element) | Out-Null
+
+        # update the depth of output
+        Add-MonocleOutputDepth
+
+        # run the scriptblock
+        . $ScriptBlock
+    }
+    finally {
+        # reset the depth
+        Remove-MonocleOutputDepth
+
+        # exit the iframe back to the default frame
+        Write-MonocleHost -Message "Exiting iFrame: $($id)"
+        $Browser.SwitchTo().ParentFrame() | Out-Null
+    }
+}

@@ -78,6 +78,7 @@ The following is a list of available functions in Monocle:
 * Clear-MonocleElementValue
 * Close-MonocleBrowser
 * Edit-MonocleUrl
+* Enter-MonocleFrame
 * Get-Monocle2FACode
 * Get-MonocleElement
 * Get-MonocleElementAttribute
