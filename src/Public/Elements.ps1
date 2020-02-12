@@ -322,6 +322,9 @@ function Wait-MonocleElement
         $Timeout = 600,
 
         [switch]
+        $WaitVisible,
+
+        [switch]
         $All
     )
 
@@ -340,6 +343,13 @@ function Wait-MonocleElement
     # set the meta id on the element
     @($result.Element) | ForEach-Object {
         Set-MonocleElementId -Element $_ -Id $result.Id
+    }
+
+    # wait for the elements to be visible
+    if ($WaitVisible) {
+        @($result.Element) | ForEach-Object {
+            $_ | Wait-MonocleElementVisible | Out-Null
+        }
     }
 
     # return the element
