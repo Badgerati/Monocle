@@ -24,6 +24,6 @@ Start-MonocleFlow -Name 'Google Search' -Browser $browser -ScriptBlock {
     Get-MonocleElement -Id 'logo' | Invoke-MonocleElementClick
 
     # ensure we're back home
-    Wait-MonocleElement -Id 'q'
+    Wait-MonocleElement -Id 'q' | Out-Null
 
 } -CloseBrowser

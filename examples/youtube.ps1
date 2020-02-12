@@ -19,7 +19,7 @@ Start-MonocleFlow -Name 'Load YouTube' -Browser $browser -ScriptBlock {
     #Get-MonocleElement -Id 'search_query' | Set-MonocleElementValue -Value 'Beerus Madness (Extended)'
 
     # Tells the browser to click the search button
-    Wait-MonocleElement -Id 'search-icon-legacy'
+    Wait-MonocleElement -Id 'search-icon-legacy' | Out-Null
     Get-MonocleElement -Id 'search-icon-legacy' | Invoke-MonocleElementClick
 
     # Though all commands sleep when the page is busy, some buttons use javascript
