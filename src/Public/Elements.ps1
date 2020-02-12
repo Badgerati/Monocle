@@ -34,6 +34,8 @@ function Set-MonocleElementValue
             $select.SelectByText($Value)
         }
         catch {
+            $select | Out-Default
+            $select.Options | Out-Default
             $select.SelectByValue($Value)
         }
     }
@@ -317,10 +319,16 @@ function Wait-MonocleElement
 
         [Parameter()]
         [int]
-        $Timeout = 600
+        $Timeout = 600,
+
+        [switch]
+        $WaitVisible,
+
+        [switch]
+        $All
     )
 
-    Get-MonocleElementInternal `
+    $result = Get-MonocleElementInternal `
         -FilterType $PSCmdlet.ParameterSetName `
         -Id $Id `
         -TagName $TagName `
@@ -329,7 +337,23 @@ function Wait-MonocleElement
         -ElementValue $ElementValue `
         -XPath $XPath `
         -Selector $Selector `
-        -Timeout $Timeout | Out-Null
+        -Timeout $Timeout `
+        -All:$All
+
+    # set the meta id on the element
+    @($result.Element) | ForEach-Object {
+        Set-MonocleElementId -Element $_ -Id $result.Id
+    }
+
+    # wait for the elements to be visible
+    if ($WaitVisible) {
+        @($result.Element) | ForEach-Object {
+            $_ | Wait-MonocleElementVisible | Out-Null
+        }
+    }
+
+    # return the element
+    return $result.Element
 }
 
 function Get-MonocleElement
@@ -366,6 +390,9 @@ function Get-MonocleElement
         $Selector,
 
         [switch]
+        $WaitVisible,
+
+        [switch]
         $All
     )
 
@@ -386,8 +413,47 @@ function Get-MonocleElement
         Set-MonocleElementId -Element $_ -Id $result.Id
     }
 
+    # wait for the elements to be visible
+    if ($WaitVisible) {
+        @($result.Element) | ForEach-Object {
+            $_ | Wait-MonocleElementVisible | Out-Null
+        }
+    }
+
     # return the element
     return $result.Element
+}
+
+function Wait-MonocleElementVisible
+{
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true, ValueFromPipeline=$true)]
+        [OpenQA.Selenium.IWebElement]
+        $Element,
+
+        [Parameter()]
+        [int]
+        $Timeout = 30
+    )
+
+    # get the meta id of the element
+    $id = Get-MonocleElementId -Element $Element
+    Write-MonocleHost -Message "Waiting for element to be visible: $($id)"
+
+    # wait for the element to be visible
+    $seconds = 0
+
+    while ($seconds -le $Timeout) {
+        if (($Element | Test-MonocleElementVisible)) {
+            return $Element
+        }
+
+        $seconds++
+        Start-Sleep -Seconds 1
+    }
+
+    throw "Element '$($id)' was not visible after $($Timeout) seconds"
 }
 
 function Measure-MonocleElement

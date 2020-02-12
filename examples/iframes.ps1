@@ -1,7 +1,15 @@
 param(
     [Parameter(Mandatory=$true)]
     [string]
-    $Url
+    $Url,
+
+    [Parameter(Mandatory=$true)]
+    [string]
+    $Postcode,
+
+    [Parameter(Mandatory=$true)]
+    [string]
+    $Address
 )
 
 $path = Split-Path -Parent -Path (Split-Path -Parent -Path $MyInvocation.MyCommand.Path)
@@ -17,10 +25,9 @@ Start-MonocleFlow -Name 'Elements in iFrames' -Browser $browser -ScriptBlock {
     Set-MonocleUrl -Url $Url
 
     Get-MonocleElement -Id 'fillform-frame-1' | Enter-MonocleFrame -ScriptBlock {
-        Get-MonocleElement -Id 'postcode_search' | Set-MonocleElementValue -Value 'NN1 1AA'
+        Get-MonocleElement -Id 'postcode_search' | Set-MonocleElementValue -Value $Postcode
         Get-MonocleElement -Id 'findAddressbtn' | Invoke-MonocleElementClick
+        Get-MonocleElement -Id 'yourAddress' -WaitVisible | Set-MonocleElementValue -Value $Address
     }
-
-    Start-Sleep -Seconds 5
 
 } -CloseBrowser

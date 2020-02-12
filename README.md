@@ -116,6 +116,7 @@ The following is a list of available functions in Monocle:
 * Test-MonocleElementCSS
 * Test-MonocleElementVisible
 * Wait-MonocleElement
+* Wait-MonocleElementVisible
 * Wait-MonocleUrl
 * Wait-MonocleUrlDifferent
 * Wait-MonocleValue
