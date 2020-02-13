@@ -34,8 +34,6 @@ function Set-MonocleElementValue
             $select.SelectByText($Value)
         }
         catch {
-            $select | Out-Default
-            $select.Options | Out-Default
             $select.SelectByValue($Value)
         }
     }
