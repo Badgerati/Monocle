@@ -78,6 +78,7 @@ The following is a list of available functions in Monocle:
 * Clear-MonocleElementValue
 * Close-MonocleBrowser
 * Edit-MonocleUrl
+* Enter-MonocleFrame
 * Get-Monocle2FACode
 * Get-MonocleElement
 * Get-MonocleElementAttribute
@@ -115,6 +116,7 @@ The following is a list of available functions in Monocle:
 * Test-MonocleElementCSS
 * Test-MonocleElementVisible
 * Wait-MonocleElement
+* Wait-MonocleElementVisible
 * Wait-MonocleUrl
 * Wait-MonocleUrlDifferent
 * Wait-MonocleValue

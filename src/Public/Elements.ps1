@@ -317,10 +317,16 @@ function Wait-MonocleElement
 
         [Parameter()]
         [int]
-        $Timeout = 600
+        $Timeout = 600,
+
+        [switch]
+        $WaitVisible,
+
+        [switch]
+        $All
     )
 
-    Get-MonocleElementInternal `
+    $result = Get-MonocleElementInternal `
         -FilterType $PSCmdlet.ParameterSetName `
         -Id $Id `
         -TagName $TagName `
@@ -329,7 +335,23 @@ function Wait-MonocleElement
         -ElementValue $ElementValue `
         -XPath $XPath `
         -Selector $Selector `
-        -Timeout $Timeout | Out-Null
+        -Timeout $Timeout `
+        -All:$All
+
+    # set the meta id on the element
+    @($result.Element) | ForEach-Object {
+        Set-MonocleElementId -Element $_ -Id $result.Id
+    }
+
+    # wait for the elements to be visible
+    if ($WaitVisible) {
+        @($result.Element) | ForEach-Object {
+            $_ | Wait-MonocleElementVisible | Out-Null
+        }
+    }
+
+    # return the element
+    return $result.Element
 }
 
 function Get-MonocleElement
@@ -366,6 +388,9 @@ function Get-MonocleElement
         $Selector,
 
         [switch]
+        $WaitVisible,
+
+        [switch]
         $All
     )
 
@@ -386,8 +411,47 @@ function Get-MonocleElement
         Set-MonocleElementId -Element $_ -Id $result.Id
     }
 
+    # wait for the elements to be visible
+    if ($WaitVisible) {
+        @($result.Element) | ForEach-Object {
+            $_ | Wait-MonocleElementVisible | Out-Null
+        }
+    }
+
     # return the element
     return $result.Element
+}
+
+function Wait-MonocleElementVisible
+{
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true, ValueFromPipeline=$true)]
+        [OpenQA.Selenium.IWebElement]
+        $Element,
+
+        [Parameter()]
+        [int]
+        $Timeout = 30
+    )
+
+    # get the meta id of the element
+    $id = Get-MonocleElementId -Element $Element
+    Write-MonocleHost -Message "Waiting for element to be visible: $($id)"
+
+    # wait for the element to be visible
+    $seconds = 0
+
+    while ($seconds -le $Timeout) {
+        if (($Element | Test-MonocleElementVisible)) {
+            return $Element
+        }
+
+        $seconds++
+        Start-Sleep -Seconds 1
+    }
+
+    throw "Element '$($id)' was not visible after $($Timeout) seconds"
 }
 
 function Measure-MonocleElement
@@ -683,4 +747,41 @@ function Test-MonocleElementCSS
     )
 
     return (Invoke-MonocleJavaScript -Script 'arguments[0].style[arguments[1]] == arguments[2]' -Arguments $Element, $Name, $Value)
+}
+
+function Enter-MonocleFrame
+{
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true, ValueFromPipeline=$true)]
+        [OpenQA.Selenium.IWebElement]
+        $Element,
+
+        [Parameter(Mandatory=$true)]
+        [scriptblock]
+        $ScriptBlock
+    )
+
+    # get the meta id of the element
+    $id = Get-MonocleElementId -Element $Element
+
+    try {
+        # enter the iframe
+        Write-MonocleHost -Message "Entering iFrame: $($id)"
+        $Browser.SwitchTo().Frame($Element) | Out-Null
+
+        # update the depth of output
+        Add-MonocleOutputDepth
+
+        # run the scriptblock
+        . $ScriptBlock
+    }
+    finally {
+        # reset the depth
+        Remove-MonocleOutputDepth
+
+        # exit the iframe back to the default frame
+        Write-MonocleHost -Message "Exiting iFrame: $($id)"
+        $Browser.SwitchTo().ParentFrame() | Out-Null
+    }
 }
