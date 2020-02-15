@@ -82,7 +82,10 @@ The following is a list of available functions in Monocle:
 * Get-Monocle2FACode
 * Get-MonocleElement
 * Get-MonocleElementAttribute
+* Get-MonocleElementChild
 * Get-MonocleElementCSS
+* Get-MonocleElementParent
+* Get-MonocleElementSibling
 * Get-MonocleElementValue
 * Get-MonocleHtml
 * Get-MonoclePageSize
@@ -95,6 +98,7 @@ The following is a list of available functions in Monocle:
 * Invoke-MonocleRetryScript
 * Invoke-MonocleScreenshot
 * Measure-MonocleElement
+* Measure-MonocleElementChild
 * Move-MonoclePage
 * New-MonocleBrowser
 * Remove-MonocleElementClass
@@ -112,6 +116,7 @@ The following is a list of available functions in Monocle:
 * Test-MonocleElement
 * Test-MonocleElementAttribute
 * Test-MonocleElementChecked
+* Test-MonocleElementChild
 * Test-MonocleElementClass
 * Test-MonocleElementCSS
 * Test-MonocleElementVisible

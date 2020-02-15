@@ -262,7 +262,11 @@ function Test-MonocleElement
 
         [Parameter(ParameterSetName='Selector')]
         [string]
-        $Selector
+        $Selector,
+
+        [Parameter(ValueFromPipeline=$true)]
+        [OpenQA.Selenium.IWebElement]
+        $Scope = $null
     )
 
     $result = $null
@@ -276,7 +280,8 @@ function Test-MonocleElement
             -AttributeValue $AttributeValue `
             -ElementValue $ElementValue `
             -XPath $XPath `
-            -Selector $Selector
+            -Selector $Selector `
+            -Scope $Scope
     }
     catch { }
 
@@ -315,6 +320,10 @@ function Wait-MonocleElement
         [string]
         $Selector,
 
+        [Parameter(ValueFromPipeline=$true)]
+        [OpenQA.Selenium.IWebElement]
+        $Scope = $null,
+
         [Parameter()]
         [int]
         $Timeout = 600,
@@ -335,6 +344,7 @@ function Wait-MonocleElement
         -ElementValue $ElementValue `
         -XPath $XPath `
         -Selector $Selector `
+        -Scope $Scope `
         -Timeout $Timeout `
         -All:$All
 
@@ -387,6 +397,10 @@ function Get-MonocleElement
         [string]
         $Selector,
 
+        [Parameter(ValueFromPipeline=$true)]
+        [OpenQA.Selenium.IWebElement]
+        $Scope = $null,
+
         [switch]
         $WaitVisible,
 
@@ -404,6 +418,7 @@ function Get-MonocleElement
         -ElementValue $ElementValue `
         -XPath $XPath `
         -Selector $Selector `
+        -Scope $Scope `
         -All:$All
 
     # set the meta id on the element
@@ -485,7 +500,11 @@ function Measure-MonocleElement
 
         [Parameter(ParameterSetName='Selector')]
         [string]
-        $Selector
+        $Selector,
+
+        [Parameter(ValueFromPipeline=$true)]
+        [OpenQA.Selenium.IWebElement]
+        $Scope = $null
     )
 
     # attempt to get the monocle element
@@ -498,6 +517,7 @@ function Measure-MonocleElement
         -ElementValue $ElementValue `
         -XPath $XPath `
         -Selector $Selector `
+        -Scope $Scope `
         -NoThrow `
         -All
 
@@ -784,4 +804,110 @@ function Enter-MonocleFrame
         Write-MonocleHost -Message "Exiting iFrame: $($id)"
         $Browser.SwitchTo().ParentFrame() | Out-Null
     }
+}
+
+function Get-MonocleElementSibling
+{
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true, ValueFromPipeline=$true)]
+        [OpenQA.Selenium.IWebElement]
+        $Element,
+
+        [Parameter(Mandatory=$true)]
+        [ValidateSet('Previous', 'Next')]
+        [string]
+        $Type,
+
+        [Parameter()]
+        [int]
+        $Depth = 1
+    )
+
+    if ($Depth -le 0) {
+        throw "Sibling depth must be >=1"
+    }
+
+    ((1..$Depth) | ForEach-Object {
+        $Element = (Invoke-MonocleJavaScript -Script "return arguments[0].$($Type.ToLowerInvariant())ElementSibling" -Arguments $Element)
+    })
+
+    return $Element
+}
+
+function Get-MonocleElementParent
+{
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true, ValueFromPipeline=$true)]
+        [OpenQA.Selenium.IWebElement]
+        $Element,
+
+        [Parameter()]
+        [int]
+        $Depth = 1
+    )
+
+    if ($Depth -le 0) {
+        throw "Parent depth must be >=1"
+    }
+
+    ((1..$Depth) | ForEach-Object {
+        $Element = (Invoke-MonocleJavaScript -Script "return arguments[0].parentElement" -Arguments $Element)
+    })
+
+    return $Element
+}
+
+function Test-MonocleElementChild
+{
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true, ValueFromPipeline=$true)]
+        [OpenQA.Selenium.IWebElement]
+        $Element
+    )
+
+    return (Invoke-MonocleJavaScript -Script "return arguments[0].hasChildNodes()" -Arguments $Element)
+}
+
+function Measure-MonocleElementChild
+{
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true, ValueFromPipeline=$true)]
+        [OpenQA.Selenium.IWebElement]
+        $Element
+    )
+
+    return (Invoke-MonocleJavaScript -Script "return arguments[0].childElementCount" -Arguments $Element)
+}
+
+function Get-MonocleElementChild
+{
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true, ValueFromPipeline=$true)]
+        [OpenQA.Selenium.IWebElement]
+        $Element,
+
+        [Parameter(Mandatory=$true)]
+        [ValidateSet('First', 'Last')]
+        [string]
+        $Type,
+
+        [Parameter()]
+        [int]
+        $Depth = 1
+    )
+
+    if ($Depth -le 0) {
+        throw "Child depth must be >=1"
+    }
+
+    ((1..$Depth) | ForEach-Object {
+        $Element = (Invoke-MonocleJavaScript -Script "return arguments[0].$($Type.ToLowerInvariant())ElementChild" -Arguments $Element)
+    })
+
+    return $Element
 }
