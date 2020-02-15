@@ -824,6 +824,10 @@ function Get-MonocleElementSibling
         $Depth = 1
     )
 
+    if ($Depth -le 0) {
+        throw "Sibling depth must be >=1"
+    }
+
     ((1..$Depth) | ForEach-Object {
         $Element = (Invoke-MonocleJavaScript -Script "return arguments[0].$($Type.ToLowerInvariant())ElementSibling" -Arguments $Element)
     })
@@ -843,6 +847,10 @@ function Get-MonocleElementParent
         [int]
         $Depth = 1
     )
+
+    if ($Depth -le 0) {
+        throw "Parent depth must be >=1"
+    }
 
     ((1..$Depth) | ForEach-Object {
         $Element = (Invoke-MonocleJavaScript -Script "return arguments[0].parentElement" -Arguments $Element)
@@ -892,6 +900,10 @@ function Get-MonocleElementChild
         [int]
         $Depth = 1
     )
+
+    if ($Depth -le 0) {
+        throw "Child depth must be >=1"
+    }
 
     ((1..$Depth) | ForEach-Object {
         $Element = (Invoke-MonocleJavaScript -Script "return arguments[0].$($Type.ToLowerInvariant())ElementChild" -Arguments $Element)
