@@ -71,6 +71,10 @@ function Get-MonocleElementInternal
         [int]
         $Timeout = 0,
 
+        [Parameter()]
+        [OpenQA.Selenium.IWebElement]
+        $Scope = $null,
+
         [switch]
         $NoThrow,
 
@@ -84,28 +88,33 @@ function Get-MonocleElementInternal
 
     $seconds = 0
 
+    $doc = $Browser
+    if ($null -ne $Scope) {
+        $doc = $Scope
+    }
+
     while ($true) {
         try {
             switch ($FilterType.ToLowerInvariant()) {
                 'id' {
-                    return (Get-MonocleElementById -Id $Id -NoThrow:$NoThrow -All:$All)
+                    return (Get-MonocleElementById -Id $Id -Scope $doc -NoThrow:$NoThrow -All:$All)
                 }
 
                 'tag' {
                     if ([string]::IsNullOrWhiteSpace($AttributeName)) {
-                        return (Get-MonocleElementByTagName -TagName $TagName -ElementValue $ElementValue -NoThrow:$NoThrow -All:$All)
+                        return (Get-MonocleElementByTagName -TagName $TagName -ElementValue $ElementValue -Scope $doc -NoThrow:$NoThrow -All:$All)
                     }
                     else {
-                        return (Get-MonocleElementByTagName -TagName $TagName -AttributeName $AttributeName -AttributeValue $AttributeValue -ElementValue $ElementValue -NoThrow:$NoThrow -All:$All)
+                        return (Get-MonocleElementByTagName -TagName $TagName -AttributeName $AttributeName -AttributeValue $AttributeValue -ElementValue $ElementValue -Scope $doc -NoThrow:$NoThrow -All:$All)
                     }
                 }
 
                 'xpath' {
-                    return (Get-MonocleElementByXPath -XPath $XPath -NoThrow:$NoThrow -All:$All)
+                    return (Get-MonocleElementByXPath -XPath $XPath -Scope $doc -NoThrow:$NoThrow -All:$All)
                 }
 
                 'selector' {
-                    return (Get-MonocleElementBySelector -Selector $Selector -NoThrow:$NoThrow -All:$All)
+                    return (Get-MonocleElementBySelector -Selector $Selector -Scope $doc -NoThrow:$NoThrow -All:$All)
                 }
             }
         }
@@ -129,6 +138,9 @@ function Get-MonocleElementById
         [string]
         $Id,
 
+        [Parameter()]
+        $Scope,
+
         [switch]
         $NoThrow,
 
@@ -137,12 +149,12 @@ function Get-MonocleElementById
     )
 
     Write-Verbose -Message "Finding element with identifier '$Id'"
-    $element = $Browser.FindElementsById($Id)
+    $element = $Scope.FindElementsById($Id)
 
     # if no element by ID, try by first named element
     if ($null -eq ($element | Select-Object -First 1)) {
         Write-Verbose -Message "Finding element with name '$Id'"
-        $element = $Browser.FindElementsByName($Id)
+        $element = $Scope.FindElementsByName($Id)
     }
 
     # throw error if can't find element
@@ -181,6 +193,9 @@ function Get-MonocleElementByTagName
         [string]
         $ElementValue,
 
+        [Parameter()]
+        $Scope,
+
         [switch]
         $NoThrow,
 
@@ -190,7 +205,7 @@ function Get-MonocleElementByTagName
 
     # get all elements for the tag
     Write-Verbose -Message "Finding element with tag <$TagName>"
-    $element = $Browser.FindElementsByTagName($TagName)
+    $element = $Scope.FindElementsByTagName($TagName)
     $id = $TagName.ToLowerInvariant()
 
     # if we have attribute info, attempt to get an element
@@ -255,6 +270,9 @@ function Get-MonocleElementByXPath
         [string]
         $XPath,
 
+        [Parameter()]
+        $Scope,
+
         [switch]
         $NoThrow,
 
@@ -263,7 +281,7 @@ function Get-MonocleElementByXPath
     )
 
     Write-Verbose -Message "Finding element with XPath '$XPath'"
-    $element = @($Browser.FindElementsByXPath($XPath))
+    $element = @($Scope.FindElementsByXPath($XPath))
 
     # throw error if can't find element
     if (($null -eq ($element | Select-Object -First 1)) -and !$NoThrow) {
@@ -289,6 +307,9 @@ function Get-MonocleElementBySelector
         [string]
         $Selector,
 
+        [Parameter()]
+        $Scope,
+
         [switch]
         $NoThrow,
 
@@ -298,10 +319,20 @@ function Get-MonocleElementBySelector
 
     Write-Verbose -Message "Finding element with selector '$Selector'"
     if ($All) {
-        $element = Invoke-MonocleJavaScript -Script 'return document.querySelectorAll(arguments[0])' -Arguments $Selector
+        if ($Scope -is [OpenQA.Selenium.IWebElement]) {
+            $element = Invoke-MonocleJavaScript -Script 'return arguments[0].querySelectorAll(arguments[1])' -Arguments $Scope, $Selector
+        }
+        else {
+            $element = Invoke-MonocleJavaScript -Script 'return document.querySelectorAll(arguments[0])' -Arguments $Selector
+        }
     }
     else {
-        $element = Invoke-MonocleJavaScript -Script 'return document.querySelector(arguments[0])' -Arguments $Selector
+        if ($Scope -is [OpenQA.Selenium.IWebElement]) {
+            $element = Invoke-MonocleJavaScript -Script 'return arguments[0].querySelector(arguments[1])' -Arguments $Scope, $Selector
+        }
+        else {
+            $element = Invoke-MonocleJavaScript -Script 'return document.querySelector(arguments[0])' -Arguments $Selector
+        }
     }
 
     # throw error if can't find element
