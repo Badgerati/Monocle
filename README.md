@@ -180,3 +180,10 @@ FROM badgerati/monocle:latest
 COPY . /usr/src/scripts
 CMD [ "pwsh", "-c", "cd /usr/src/scripts; ./flow.ps1" ]
 ```
+
+The you can build and run the image as follows:
+
+```powershell
+docker build -t monocle/test .
+docker run --rm monocle/test
+```
