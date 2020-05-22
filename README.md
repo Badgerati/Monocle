@@ -17,9 +17,9 @@ Monocle is a Cross-Platform PowerShell Web Automation module, made to make autom
 Monocle currently supports the following browsers:
 
 * IE (v3.150)
-* Chrome (v80.0.3987.1600)
-* Firefox (driver: v0.26)
-* Edge (driver: v79.0.309.71)
+* Chrome (v83.0.4103.3900)
+* Firefox (driver: v0.26.0.1)
+* Edge (driver: v81.0.416.77)
 * EdgeLegacy (driver: v17.17134)
 
 ## Install
@@ -179,4 +179,11 @@ An example `Dockerfile` could be:
 FROM badgerati/monocle:latest
 COPY . /usr/src/scripts
 CMD [ "pwsh", "-c", "cd /usr/src/scripts; ./flow.ps1" ]
+```
+
+The you can build and run the image as follows:
+
+```powershell
+docker build -t monocle/test .
+docker run --rm monocle/test
 ```

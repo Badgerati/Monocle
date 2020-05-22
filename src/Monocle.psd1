@@ -11,7 +11,7 @@
     RootModule = 'Monocle.psm1'
 
     # Version number of this module.
-    ModuleVersion = '1.3.2'
+    ModuleVersion = '1.3.3'
 
     # ID used to uniquely identify this module
     GUID = '9dc3c8a1-664d-4253-a5d2-920250d3a15f'
