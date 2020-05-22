@@ -1,3 +1,25 @@
+<#
+.SYNOPSIS
+Scroll the current webpage.
+
+.DESCRIPTION
+Scroll the current webpage to a specific element, or a position.
+
+.PARAMETER To
+Scroll to the top or bottom of the page.
+
+.PARAMETER Position
+Scroll to a specific height of the page.
+
+.PARAMETER Element
+Scroll to an element on the page.
+
+.EXAMPLE
+Move-MonoclePage -To Bottom
+
+.EXAMPLE
+Get-MonocleElement -Id 'image' | Move-MonoclePage
+#>
 function Move-MonoclePage
 {
     [CmdletBinding()]
@@ -41,6 +63,16 @@ function Move-MonoclePage
     }
 }
 
+<#
+.SYNOPSIS
+Returns the size of the current webpage.
+
+.DESCRIPTION
+Returns the size of the current webpage, as a Hashtable with Height/Width.
+
+.EXAMPLE
+$size = Get-MonoclePageSize
+#>
 function Get-MonoclePageSize
 {
     [CmdletBinding()]

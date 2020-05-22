@@ -1,7 +1,23 @@
+<#
+.SYNOPSIS
+Asserts that the current page's body has the expected value.
+
+.DESCRIPTION
+Asserts that the current page's body has the expected value.
+
+.PARAMETER ExpectedValue
+The expected value to assert that the body has.
+
+.PARAMETER Not
+If supplied, the check will be to assert the body isn't an expected value.
+
+.EXAMPLE
+Assert-MonocleBodyValue -ExpectedValue 'hello, world'
+#>
 function Assert-MonocleBodyValue
 {
     [CmdletBinding()]
-    param (
+    param(
         [Parameter(Mandatory=$true)]
         [string]
         $ExpectedValue,
@@ -24,57 +40,37 @@ function Assert-MonocleBodyValue
     }
 }
 
+<#
+.SYNOPSIS
+Asserts that an element has the specified value.
+
+.DESCRIPTION
+Asserts that an element has the specified value.
+
+.PARAMETER Element
+The Element to assert.
+
+.PARAMETER ExpectedValue
+The expected value to assert that the element has.
+
+.EXAMPLE
+$Element | Assert-MonocleElementValue -ExpectedValue 'Rick'
+#>
 function Assert-MonocleElementValue
 {
     [CmdletBinding()]
-    param (
-        [Parameter(Mandatory=$true, ParameterSetName='Id')]
-        [string]
-        $Id,
+    param(
+        [Parameter(Mandatory=$true, ValueFromPipeline=$true)]
+        [OpenQA.Selenium.IWebElement]
+        $Element,
 
-        [Parameter(Mandatory=$true, ParameterSetName='Tag')]
+        [Parameter()]
         [string]
-        $TagName,
-
-        [Parameter(ParameterSetName='Tag')]
-        [string]
-        $AttributeName,
-
-        [Parameter(ParameterSetName='Tag')]
-        [string]
-        $AttributeValue,
-
-        [Parameter(ParameterSetName='Tag')]
-        [string]
-        $ElementValue,
-
-        [Parameter(ParameterSetName='XPath')]
-        [string]
-        $XPath
+        $ExpectedValue
     )
 
-    $value = Get-MonocleElementValue `
-        -FilterType $PSCmdlet.ParameterSetName `
-        -Id $Id `
-        -TagName $TagName `
-        -AttributeName $AttributeName `
-        -AttributeValue $AttributeValue `
-        -ElementValue $ElementValue `
-        -XPath $XPath
-
-    if ($value -ine $ExpectedValue)
-    {
-        $innerHtml = Get-MonocleElementValue `
-            -FilterType $PSCmdlet.ParameterSetName `
-            -Id $Id `
-            -TagName $TagName `
-            -AttributeName $AttributeName `
-            -AttributeValue $AttributeValue `
-            -ElementValue $ElementValue `
-            -XPath $XPath
-
-        if ($innerHtml -ine $ExpectedValue) {
-            throw "Element's value is not valid.`nExpected: $($ExpectedValue)`nBut got Value: $($value)`nand InnerHTML: $($innerHtml)"
-        }
+    if ($Element.Text -inotmatch $ExpectedValue) {
+        $id = Get-MonocleElementId -Element $Element
+        throw "Element $($id)'s value is not valid.`nExpected: $($ExpectedValue)`nBut got Value: $($Element.Text)"
     }
 }

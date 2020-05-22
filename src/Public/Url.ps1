@@ -1,3 +1,19 @@
+<#
+.SYNOPSIS
+Navigates the browser to a URL.
+
+.DESCRIPTION
+Navigates the browser to a URL, after testing if the URL is valid.
+
+.PARAMETER Url
+The URL to navigate the browser to.
+
+.PARAMETER Force
+If supplied, will skip testing the URL and just attempt to navigate to it.
+
+.EXAMPLE
+Set-MonocleUrl -Url 'https://google.com'
+#>
 function Set-MonocleUrl
 {
     [CmdletBinding()]
@@ -39,6 +55,16 @@ function Set-MonocleUrl
     }
 }
 
+<#
+.SYNOPSIS
+Returns the current URL of the browser.
+
+.DESCRIPTION
+Returns the current URL of the browser.
+
+.EXAMPLE
+$url = Get-MonocleUrl
+#>
 function Get-MonocleUrl
 {
     [CmdletBinding()]
@@ -48,6 +74,16 @@ function Get-MonocleUrl
     return $Browser.Url
 }
 
+<#
+.SYNOPSIS
+Returns the page load timeout of the browser.
+
+.DESCRIPTION
+Returns the page load, and element retrieval timeout of the browser in seconds.
+
+.EXAMPLE
+$timeout = Get-MonocleTimeout
+#>
 function Get-MonocleTimeout
 {
     [CmdletBinding()]
@@ -62,6 +98,19 @@ function Get-MonocleTimeout
     return $timeout
 }
 
+<#
+.SYNOPSIS
+Set the page load, and element retrieval timeout.
+
+.DESCRIPTION
+Set the page load, and element retrieval timeout in seconds.
+
+.PARAMETER Timeout
+The timeout, in seconds, to wait for a page to load or to retrieve an element.
+
+.EXAMPLE
+Set-MonocleTimeout -Timeout 45
+#>
 function Set-MonocleTimeout
 {
     [CmdletBinding()]
@@ -78,6 +127,25 @@ function Set-MonocleTimeout
     $Browser.Manage().Timeouts().PageLoad = [timespan]::FromSeconds($Timeout)
 }
 
+<#
+.SYNOPSIS
+Edits the current URL using a Regex pattern.
+
+.DESCRIPTION
+Edits the current URL using a Regex pattern, and then navigate to it.
+
+.PARAMETER Pattern
+A Regex pattern to find in the URL.
+
+.PARAMETER Value
+The value to use and replace in the URL when the pattern matches.
+
+.PARAMETER Force
+If supplied, will skip testing the URL and just attempt to navigate to it.
+
+.EXAMPLE
+Edit-MonocleUrl -Pattern '\/about' -Value '/home'
+#>
 function Edit-MonocleUrl
 {
     [CmdletBinding()]
@@ -99,6 +167,29 @@ function Edit-MonocleUrl
     Start-MonocleSleepWhileBusy
 }
 
+<#
+.SYNOPSIS
+Wait for the browser to navigate to a URL.
+
+.DESCRIPTION
+Wait for the browser to navigate to a URL, either literally or by Regex pattern.
+The wait will fail after a number of seconds greater than the browser's page load timeout.
+
+.PARAMETER Url
+A literal URL to wait for the browser to be on.
+
+.PARAMETER Pattern
+A Regex pattern to wait for the browser's URL to match.
+
+.PARAMETER StartsWith
+If supplied, and using a literal URL, will only wait till the browser's URL starts with the URL value.
+
+.EXAMPLE
+Wait-MonocleUrl -Url 'https://google.com' -StartsWith
+
+.EXAMPLE
+Wait-MonocleUrl -Pattern '.*google\.com.*'
+#>
 function Wait-MonocleUrl
 {
     [CmdletBinding(DefaultParameterSetName='Url')]
@@ -153,6 +244,19 @@ function Wait-MonocleUrl
     Start-MonocleSleepWhileBusy
 }
 
+<#
+.SYNOPSIS
+Wait for the browser to navigate away from the specified URL.
+
+.DESCRIPTION
+Wait for the browser to navigate away from the specified URL.
+
+.PARAMETER FromUrl
+The URL to wait for the browser's URL to be different to.
+
+.EXAMPLE
+Wait-MonocleUrlDifferent -FromUrl 'http://google.com'
+#>
 function Wait-MonocleUrlDifferent
 {
     [CmdletBinding()]

@@ -1,3 +1,34 @@
+<#
+.SYNOPSIS
+Returns an instance of a Selenium browser for use with Start-MonocleFlow.
+
+.DESCRIPTION
+Returns an instance of a Selenium browser for use with Start-MonocleFlow.
+
+.PARAMETER Type
+The Type of browser to create.
+
+.PARAMETER Timeout
+An optional page/load timeout in seconds. (Default: 30secs)
+
+.PARAMETER Arguments
+An optional array of Arguments to supply to the browser.
+
+.PARAMETER Path
+An optional Path to a custom driver for the browser.
+
+.PARAMETER BinaryPath
+An optional path to a custom binary for the browser.
+
+.PARAMETER Hide
+If supplied, the browser will be hidden.
+
+.EXAMPLE
+New-MonocleBrowser -Type Chrome -Hide
+
+.EXAMPLE
+New-MonocleBrowser -Type Firefox -Timeout 60
+#>
 function New-MonocleBrowser
 {
     [CmdletBinding()]
@@ -46,6 +77,19 @@ function New-MonocleBrowser
     }
 }
 
+<#
+.SYNOPSIS
+Closes one, or more, Selenium browsers.
+
+.DESCRIPTION
+Closes one, or more, Selenium browsers.
+
+.PARAMETER Browser
+The Selenium browser to close.
+
+.EXAMPLE
+Close-MonocleBrowser -Browser $Browser
+#>
 function Close-MonocleBrowser
 {
     [CmdletBinding()]
@@ -70,6 +114,37 @@ function Close-MonocleBrowser
     $Browser = $null
 }
 
+<#
+.SYNOPSIS
+Starts a Monocle flow to test a browser flow.
+
+.DESCRIPTION
+Starts a Monocle flow to test a browser flow.
+
+.PARAMETER Name
+The Name of the flow being tested.
+
+.PARAMETER ScriptBlock
+The ScriptBlock with Monocle commands to test the flow.
+
+.PARAMETER ScreenshotPath
+An optional path to save screenshots.
+
+.PARAMETER Browser
+The browser to use while testing the flow. (Default: Chrome)
+
+.PARAMETER ScreenshotOnFail
+If supplied, a screenshot will be taken if the flow fails.
+
+.PARAMETER CloseBrowser
+If supplied, the flow will auto-close the browser.
+
+.EXAMPLE
+Start-MonocleFlow -Name 'Login' -ScriptBlock {} -CloseBrowser
+
+.EXAMPLE
+Start-MonocleFlow -Name 'Login' -ScriptBlock {} -CloseBrowser -$ScreenshotPath './screenshots' -ScreenshotOnFail
+#>
 function Start-MonocleFlow
 {
     [CmdletBinding()]
@@ -142,6 +217,25 @@ function Start-MonocleFlow
     }
 }
 
+<#
+.SYNOPSIS
+Retries running a script X times.
+
+.DESCRIPTION
+Retries running a script X times, and errors if the last attempt is a failure.
+
+.PARAMETER Name
+A Name for the script being retried.
+
+.PARAMETER ScriptBlock
+The script to keep retrying
+
+.PARAMETER Attempts
+The number of attempts to retry. (Default: 5)
+
+.EXAMPLE
+Invoke-MonocleRetryScript -Name 'Login' -ScriptBlock {}
+#>
 function Invoke-MonocleRetryScript
 {
     [CmdletBinding()]
