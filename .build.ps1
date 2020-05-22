@@ -2,7 +2,10 @@ Task 'Build' Selenium, { }
 
 Task 'Selenium' {
     if (Test-Path ./src/lib) {
-        Remove-Item -Path ./src/lib -Force -Recurse -ErrorAction Stop | Out-Null
+        Remove-Item -Path ./src/lib/WebDriver -Force -Recurse -ErrorAction Ignore | Out-Null
+        Remove-Item -Path ./src/lib/Browsers/*/chromedriver* -Force -Recurse -ErrorAction Stop | Out-Null
+        Remove-Item -Path ./src/lib/Browsers/*/geckodriver* -Force -Recurse -ErrorAction Stop | Out-Null
+        Remove-Item -Path ./src/lib/Browsers/*/IEDriverServer* -Force -Recurse -ErrorAction Stop | Out-Null
     }
 
     if (Test-Path ./temp) {
@@ -12,9 +15,9 @@ Task 'Selenium' {
     $packages = @{
         'Selenium.WebDriver' = '3.141.0'
         'Selenium.Support' = '3.141.0'
-        'Selenium.WebDriver.ChromeDriver' = '80.0.3987.1600'
+        'Selenium.WebDriver.ChromeDriver' = '83.0.4103.3900'
         'Selenium.WebDriver.IEDriver' = '3.150.1'
-        'Selenium.WebDriver.GeckoDriver' = '0.26.0'
+        'Selenium.WebDriver.GeckoDriver' = '0.26.0.1'
     }
 
     $packages.Keys | ForEach-Object {
@@ -38,7 +41,6 @@ Task 'Selenium' {
     New-Item -Path ./src/lib/Browsers/mac -ItemType Directory -Force | Out-Null
 
     # win
-    "./temp/Selenium.WebDriver.IEDriver.$($packages['Selenium.WebDriver.IEDriver'])/driver/*" | Out-Default
     Copy-Item -Path "./temp/Selenium.WebDriver.IEDriver.$($packages['Selenium.WebDriver.IEDriver'])/driver/*" -Destination ./src/lib/Browsers/win/ -Recurse -Force | Out-Null
     Copy-Item -Path "./temp/Selenium.WebDriver.GeckoDriver.$($packages['Selenium.WebDriver.GeckoDriver'])/driver/win64/*" -Destination ./src/lib/Browsers/win/ -Recurse -Force | Out-Null
     Copy-Item -Path "./temp/Selenium.WebDriver.ChromeDriver.$($packages['Selenium.WebDriver.ChromeDriver'])/driver/win32/*" -Destination ./src/lib/Browsers/win/ -Recurse -Force | Out-Null
