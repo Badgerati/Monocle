@@ -1,5 +1,5 @@
 # make sure to build this with --no-cache
-FROM mcr.microsoft.com/powershell:6.2.3-ubuntu-16.04
+FROM mcr.microsoft.com/powershell:7.0.0-ubuntu-16.04
 LABEL maintainer="Matthew Kelly (Badgerati)"
 
 # update
