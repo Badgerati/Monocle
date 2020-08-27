@@ -15,9 +15,9 @@ Task 'Selenium' {
     $packages = @{
         'Selenium.WebDriver' = '3.141.0'
         'Selenium.Support' = '3.141.0'
-        'Selenium.WebDriver.ChromeDriver' = '83.0.4103.3900'
-        'Selenium.WebDriver.IEDriver' = '3.150.1'
-        'Selenium.WebDriver.GeckoDriver' = '0.26.0.1'
+        'Selenium.WebDriver.ChromeDriver' = '85.0.4183.8300'
+        'Selenium.WebDriver.IEDriver' = '3.150.1.2'
+        'Selenium.WebDriver.GeckoDriver' = '0.27.0'
     }
 
     $packages.Keys | ForEach-Object {
