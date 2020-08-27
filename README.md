@@ -16,9 +16,9 @@ Monocle is a Cross-Platform PowerShell Web Automation module, made to make autom
 
 Monocle currently supports the following browsers:
 
-* IE (v3.150)
-* Chrome (v83.0.4103.3900)
-* Firefox (driver: v0.26.0.1)
+* IE (v3.150.1.2)
+* Chrome (v85.0.4183.8300)
+* Firefox (driver: v0.27.0)
 * Edge (driver: v81.0.416.77)
 * EdgeLegacy (driver: v17.17134)
 
