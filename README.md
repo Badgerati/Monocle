@@ -149,7 +149,7 @@ Start-MonocleFlow -Name '<name>' -Browser $browser -ScriptBlock {
 Or, you can take a screenshot directly:
 
 ```powershell
-Invoke-MonocoleScreenshot -Name 'screenshot.png' -Path './path'
+Invoke-MonocleScreenshot -Name 'screenshot.png' -Path './path'
 ```
 
 > Not supplying `-ScreenshotPath` or `-Path` will default to the current path.
